@@ -236,11 +236,11 @@ function Body({ a, offer }: { a: Analytics; offer: number | null }) {
         </div>
         <div className="panel p-5">
           <h2 className="mb-3 text-lg font-semibold">Eventos registrados</h2>
-          {[
+          {([
             ["Play", "play"], ["Pausa", "pause"], ["Retomada", "resume"], ["Avanço", "seek_forward"],
             ["Retorno", "seek_backward"], ["Abandono", "abandon"], ["Chegada ao CTA", "cta_reached"],
             ["Clique no checkout", "checkout_click"], ["Assistiu até o fim", "complete"],
-          ].map(([l, k]) => (
+          ] as [string, string][]).map(([l, k]) => (
             <div key={k} className="flex justify-between border-b border-border py-1.5 text-sm last:border-0">
               <span className="text-muted-foreground">{l}</span><span className="num">{ev(k)}</span>
             </div>

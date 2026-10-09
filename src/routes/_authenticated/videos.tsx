@@ -32,8 +32,8 @@ function parseTime(s: string): number | null {
 
 function embedCode(id: string) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return `<div id="vsl-${id}" style="position:relative;width:100%;aspect-ratio:16/9"></div>
-<script>(function(){var c=document.getElementById("vsl-${id}");var f=document.createElement("iframe");f.src="${origin}/embed/${id}"+location.search;f.allow="autoplay; fullscreen";f.allowFullscreen=true;f.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:0";c.appendChild(f);})();</script>`;
+  return `<div id="vsl-${id}" style="position:relative;width:100%;max-width:480px;margin:0 auto"></div>
+<script>(function(){var c=document.getElementById("vsl-${id}");var f=document.createElement("iframe");f.src="${origin}/embed/${id}"+location.search;f.allow="autoplay; fullscreen";f.allowFullscreen=true;f.style.cssText="display:block;width:100%;border:0;aspect-ratio:9/16";c.appendChild(f);addEventListener("message",function(e){if(e.source===f.contentWindow&&e.data&&e.data.vslHeight){f.style.aspectRatio="auto";f.style.height=e.data.vslHeight+"px";}});})();</script>`;
 }
 
 function Videos() {
@@ -50,7 +50,7 @@ function Videos() {
       thumbnail_url: f.thumbnail_url || null, checkout_url: f.checkout_url || null,
       offer_time_seconds: parseTime(f.offer),
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("VSL cadastrada");
     setOpen(false);
     setF({ name: "", video_url: "", thumbnail_url: "", checkout_url: "", offer: "" });
