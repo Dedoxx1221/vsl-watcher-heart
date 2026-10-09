@@ -102,7 +102,7 @@ export class VslTracker {
         this.openRange = { id: `${this.s.id}-${this.s.seq}`, start: r2(this.lastTime), end: r2(t) };
       } else this.openRange.end = r2(t);
       this.dirtyRanges.set(this.openRange.id, { ...this.openRange });
-      this.s.watched += delta / Math.max(1, rate) * Math.max(1, rate) / Math.max(1, rate);
+      this.s.watched += delta;
       if (t > this.s.max) this.s.max = t;
       if (this.offerAt != null && !this.s.ctaFired && t >= this.offerAt) {
         this.s.ctaFired = true;
