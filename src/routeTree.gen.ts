@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EmbedVideoIdRouteImport } from './routes/embed.$videoId'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedVideoIdRoute = EmbedVideoIdRouteImport.update({
+  id: '/embed/$videoId',
+  path: '/embed/$videoId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
@@ -25,27 +31,31 @@ const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/track'
+  fullPaths: '/' | '/embed/$videoId' | '/api/public/track'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/track'
-  id: '__root__' | '/' | '/api/public/track'
+  to: '/' | '/embed/$videoId' | '/api/public/track'
+  id: '__root__' | '/' | '/embed/$videoId' | '/api/public/track'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EmbedVideoIdRoute: typeof EmbedVideoIdRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/$videoId': {
+      id: '/embed/$videoId'
+      path: '/embed/$videoId'
+      fullPath: '/embed/$videoId'
+      preLoaderRoute: typeof EmbedVideoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/track': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EmbedVideoIdRoute: EmbedVideoIdRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
 }
 export const routeTree = rootRouteImport
