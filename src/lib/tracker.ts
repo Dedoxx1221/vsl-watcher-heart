@@ -149,5 +149,5 @@ export class VslTracker {
     }
   }
 
-  destroy() { if (this.timer) clearInterval(this.timer); }
+  destroy() { if (this.timer) clearInterval(this.timer); this.flush(); }
 }
