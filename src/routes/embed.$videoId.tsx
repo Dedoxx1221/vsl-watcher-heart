@@ -42,7 +42,6 @@ type V = { id: string; video_url: string; thumbnail_url: string | null; checkout
 function Player({ video }: { video: V }) {
   const ref = useRef<HTMLVideoElement>(null);
   const tracker = useRef<VslTracker | null>(null);
-  const seekFrom = useRef(0);
   const [started, setStarted] = useState(false);
   const [showCta, setShowCta] = useState(false);
   const [query, setQuery] = useState("");
@@ -79,11 +78,9 @@ function Player({ video }: { video: V }) {
         onPlay={() => tracker.current?.onPlay(el().currentTime)}
         onPause={() => { if (!el().ended) tracker.current?.onPause(el().currentTime); }}
         onEnded={() => tracker.current?.onEnded(el().currentTime)}
-        onSeeking={() => { /* from is last known time */ }}
-        onSeeked={() => { tracker.current?.onSeeked(seekFrom.current, el().currentTime); seekFrom.current = el().currentTime; }}
+        onSeeked={() => { tracker.current?.onTime(el().currentTime, el().playbackRate); }}
         onTimeUpdate={() => {
           const v = el();
-          if (!v.seeking) seekFrom.current = v.currentTime;
           tracker.current?.onTime(v.currentTime, v.playbackRate);
           if (video.offer_time_seconds != null && v.currentTime >= video.offer_time_seconds) setShowCta(true);
         }}

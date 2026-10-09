@@ -87,8 +87,7 @@ export class VslTracker {
 
   onSeeked(from: number, to: number) {
     this.closeRange();
-    if (Math.abs(to - from) < 0.5) return;
-    this.push(to > from ? "seek_forward" : "seek_backward", to, from);
+    if (Math.abs(to - from) >= 1) this.push(to > from ? "seek_forward" : "seek_backward", to, from);
     this.lastTime = to;
   }
 
@@ -108,8 +107,10 @@ export class VslTracker {
         this.s.ctaFired = true;
         this.push("cta_reached", t);
       }
-    } else if (delta !== 0) {
+    } else if (Math.abs(delta) >= 1) {
+      // Jump detected (seek) — report it here since seeked may not carry the origin.
       this.closeRange();
+      this.push(delta > 0 ? "seek_forward" : "seek_backward", t, this.lastTime);
     }
     this.lastTime = t;
     this.save();
