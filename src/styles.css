@@ -29,6 +29,10 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-player-bar: var(--player-bar);
+  --color-player-track: var(--player-track);
   --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
@@ -67,6 +71,10 @@
   --destructive: oklch(0.66 0.21 25);
   --destructive-foreground: oklch(0.98 0 0);
   --success: oklch(0.78 0.16 155);
+  --cta: oklch(0.63 0.17 149);
+  --cta-foreground: oklch(1 0 0);
+  --player-bar: oklch(0.59 0.23 28);
+  --player-track: oklch(1 0 0 / 35%);
   --warning: oklch(0.8 0.15 75);
   --border: oklch(0.3 0.014 250);
   --input: oklch(0.32 0.014 250);
@@ -98,3 +106,9 @@
 
 @utility num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 @utility panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+
+@keyframes cta-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 14px oklch(0.63 0.17 149 / 30%); }
+  50% { transform: scale(1.035); box-shadow: 0 6px 20px oklch(0.63 0.17 149 / 48%); }
+}
+@utility cta-pulse { animation: cta-pulse 1.5s ease-in-out infinite; }
