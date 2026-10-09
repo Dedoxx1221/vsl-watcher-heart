@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { property: "og:description", content: "Retenção, abandono e funil da sua VSL." },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>) => ({ v: typeof s.v === "string" ? s.v : undefined }),
+  validateSearch: (s: Record<string, unknown>): { v?: string } => (typeof s.v === "string" ? { v: s.v } : {}),
   loader: ({ context }) => context.queryClient.ensureQueryData(videosQuery),
   component: Dashboard,
 });
