@@ -5,4 +5,4 @@
 - [x] Player com as funções do player original (overlay, barra, bloqueio de avanço, CTA)
 - [x] Reaproveitar funções estilo VTurb (recriadas, código da VTurb não é reutilizável)
 - [x] Diagnóstico com IA (causas de abandono + edições)
-- [ ] Retenção estilo VTurb: vídeo sincronizado ao gráfico (clicar no gráfico mostra o trecho)
+- [x] Retenção estilo VTurb: vídeo sincronizado ao gráfico (clicar no gráfico mostra o trecho)
