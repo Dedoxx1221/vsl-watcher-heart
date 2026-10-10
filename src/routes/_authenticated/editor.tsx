@@ -125,7 +125,7 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
     if ((tag === "div" || tag === "p") && node.nextSibling) result.push({ text: "\n" });
   };
   for (const child of Array.from(root.childNodes)) walk(child);
-  while (result.length && result[result.length - 1].text === "\n") result.pop();
+  while (result.length && result[result.length - 1]!.text === "\n") result.pop();
   return result.map((part) => ({
     ...part,
     ...(part.color === defaultColor ? { color: undefined } : {}),
@@ -229,9 +229,9 @@ function Editor() {
     let end = Math.max(0, Math.min(text.length, Math.max(headlineSelection.start, headlineSelection.end)));
     if (start === end) {
       start = Math.min(start, text.length);
-      while (start > 0 && !/\s/.test(text[start - 1])) start--;
+      while (start > 0 && !/\s/.test(text[start - 1] ?? "")) start--;
       end = Math.max(start, Math.min(text.length, headlineSelection.start));
-      while (end < text.length && !/\s/.test(text[end])) end++;
+      while (end < text.length && !/\s/.test(text[end] ?? "")) end++;
       if (start === end) return;
     }
     const source: HeadlineSegment[] = s.headlineSegments.length && s.headlineSegments.map((part) => part.text).join("") === text
