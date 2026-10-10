@@ -467,7 +467,7 @@ function Editor() {
               <Input type="number" min={2} max={20} value={s.barHeight} onChange={(e) => set("barHeight", Number(e.target.value) || 5)} className="num h-8 w-20" /></div>
           </Section>
 
-          <Section id="autoplay" title="Início automático" toggle="autoplay">
+          <Section id="autoplay" title="SmartPlayer" toggle="autoplay">
             <p className="py-2 text-xs text-muted-foreground">O vídeo começa mudo em loop; ao tocar, reinicia do zero com som. Desligado, mostra a thumbnail com botão de play.</p>
             <Text k="autoplayImage" label="Imagem ou GIF sobre o vídeo (URL)" placeholder="https://…/imagem.gif — vazio usa a thumbnail" />
             <div className="my-3 rounded-xl border border-border bg-muted/30 p-4">
@@ -670,7 +670,7 @@ function Editor() {
               </label>
             </div>
             <VslPlayer
-              key={`${video.id}-${previewCta}-${s.autoplay}`}
+              key={`${video.id}-${previewCta}-${s.autoplay}-${open === "autoplay" ? "smartplayer-open" : "smartplayer-closed"}`}
               video={{ ...video, checkout_url: checkout || video.checkout_url, offer_time_seconds: parseTime(offer) }}
               settings={{ ...s, ctaAlways: previewCta }}
               onAutoplayImageTransform={open === "autoplay" ? ({ x, y, size }) => setS((prev) => ({ ...prev, autoplayImageX: Math.round(x * 10) / 10, autoplayImageY: Math.round(y * 10) / 10, autoplayImageSize: Math.round(size * 10) / 10 })) : undefined}
