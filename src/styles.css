@@ -60,8 +60,8 @@
   --card-foreground: oklch(0.95 0.005 250);
   --popover: oklch(0.21 0.014 250);
   --popover-foreground: oklch(0.95 0.005 250);
-  --primary: oklch(0.86 0.18 128);
-  --primary-foreground: oklch(0.18 0.03 130);
+  --primary: oklch(0.66 0.25 292);
+  --primary-foreground: oklch(0.99 0.005 250);
   --secondary: oklch(0.26 0.014 250);
   --secondary-foreground: oklch(0.95 0.005 250);
   --muted: oklch(0.25 0.012 250);
@@ -71,27 +71,27 @@
   --destructive: oklch(0.66 0.21 25);
   --destructive-foreground: oklch(0.98 0 0);
   --success: oklch(0.78 0.16 155);
-  --cta: oklch(0.63 0.17 149);
+  --cta: oklch(0.66 0.25 292);
   --cta-foreground: oklch(1 0 0);
   --player-bar: oklch(0.59 0.23 28);
   --player-track: oklch(1 0 0 / 35%);
   --warning: oklch(0.8 0.15 75);
   --border: oklch(0.3 0.014 250);
   --input: oklch(0.32 0.014 250);
-  --ring: oklch(0.86 0.18 128);
-  --chart-1: oklch(0.86 0.18 128);
+  --ring: oklch(0.66 0.25 292);
+  --chart-1: oklch(0.66 0.25 292);
   --chart-2: oklch(0.72 0.14 220);
   --chart-3: oklch(0.8 0.15 75);
   --chart-4: oklch(0.66 0.21 25);
   --chart-5: oklch(0.7 0.12 300);
   --sidebar: oklch(0.18 0.013 250);
   --sidebar-foreground: oklch(0.9 0.005 250);
-  --sidebar-primary: oklch(0.86 0.18 128);
-  --sidebar-primary-foreground: oklch(0.18 0.03 130);
+  --sidebar-primary: oklch(0.66 0.25 292);
+  --sidebar-primary-foreground: oklch(0.99 0.005 250);
   --sidebar-accent: oklch(0.25 0.014 250);
   --sidebar-accent-foreground: oklch(0.95 0.005 250);
   --sidebar-border: oklch(0.28 0.014 250);
-  --sidebar-ring: oklch(0.86 0.18 128);
+  --sidebar-ring: oklch(0.66 0.25 292);
 }
 
 @layer base {
@@ -108,8 +108,8 @@
 @utility panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 
 @keyframes cta-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 4px 14px oklch(0.63 0.17 149 / 30%); }
-  50% { transform: scale(1.035); box-shadow: 0 6px 20px oklch(0.63 0.17 149 / 48%); }
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 14px oklch(0.66 0.25 292 / 30%); }
+  50% { transform: scale(1.035); box-shadow: 0 6px 20px oklch(0.66 0.25 292 / 48%); }
 }
 @utility cta-pulse { animation: cta-pulse 1.5s ease-in-out infinite; }
 
@@ -140,8 +140,8 @@
   --card-foreground: oklch(0.95 0.012 250);
   --popover: oklch(0.2 0.022 258);
   --popover-foreground: oklch(0.95 0.012 250);
-  --primary: oklch(0.79 0.17 150);
-  --primary-foreground: oklch(0.16 0.025 155);
+  --primary: oklch(0.66 0.25 292);
+  --primary-foreground: oklch(0.99 0.005 250);
   --secondary: oklch(0.235 0.022 258);
   --secondary-foreground: oklch(0.92 0.012 250);
   --muted: oklch(0.22 0.02 258);
@@ -150,15 +150,15 @@
   --accent-foreground: oklch(0.97 0.01 250);
   --border: oklch(0.31 0.025 258 / 78%);
   --input: oklch(0.27 0.025 258);
-  --ring: oklch(0.79 0.17 150);
+  --ring: oklch(0.66 0.25 292);
   --sidebar: oklch(0.15 0.022 258);
   --sidebar-foreground: oklch(0.91 0.012 250);
-  --sidebar-primary: oklch(0.79 0.17 150);
-  --sidebar-primary-foreground: oklch(0.16 0.025 155);
+  --sidebar-primary: oklch(0.66 0.25 292);
+  --sidebar-primary-foreground: oklch(0.99 0.005 250);
   --sidebar-accent: oklch(0.235 0.03 258);
   --sidebar-accent-foreground: oklch(0.97 0.01 250);
   --sidebar-border: oklch(0.29 0.025 258);
-  --sidebar-ring: oklch(0.79 0.17 150);
+  --sidebar-ring: oklch(0.66 0.25 292);
 }
 html { color-scheme: dark; }
 body {
@@ -167,14 +167,14 @@ body {
     radial-gradient(ellipse at 100% 0%, oklch(0.35 0.08 155 / 7%), transparent 32rem);
   background-attachment: fixed;
 }
-::selection { background: oklch(0.79 0.17 150 / 28%); color: var(--foreground); }
+::selection { background: oklch(0.66 0.25 292 / 28%); color: var(--foreground); }
 :where(input:not([type="color"]), textarea, select) {
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 :where(input:not([type="color"]), textarea, select):focus-visible {
   outline: none;
   border-color: var(--ring) !important;
-  box-shadow: 0 0 0 3px oklch(0.79 0.17 150 / 13%);
+  box-shadow: 0 0 0 3px oklch(0.66 0.25 292 / 13%);
 }
 :where(button, a) { -webkit-tap-highlight-color: transparent; }
 :where(button, a):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
