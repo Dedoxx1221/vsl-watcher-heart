@@ -163,9 +163,16 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
 
   return (
     <div ref={wrap} style={style} className={"mx-auto w-full bg-background " + (cfg.aspect === "9:16" ? "max-w-[480px]" : "")}>
-      {cfg.headline && cfg.headlineText && (
-        <p className="px-3 py-3 text-center text-lg font-bold leading-snug" style={{ color: cfg.headlineColor }}>{cfg.headlineText}</p>
-      )}
+      {cfg.headline && cfg.headlineText && (() => {
+        const segments = cfg.headlineSegments.length && cfg.headlineSegments.map((segment) => segment.text).join("") === cfg.headlineText
+          ? cfg.headlineSegments
+          : [{ text: cfg.headlineText }];
+        return (
+          <div className="px-3 py-3 leading-snug" style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontWeight: cfg.headlineBold ? 700 : 400, textDecoration: cfg.headlineUnderline ? "underline" : "none", overflowWrap: "anywhere" }}>
+            {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: segment.underline === undefined ? undefined : segment.underline ? "underline" : "none", whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
+          </div>
+        );
+      })()}
       <div className={"relative w-full overflow-hidden bg-background leading-none " + (cfg.rounded ? "rounded-xl" : "")}>
         <video
           ref={ref}
