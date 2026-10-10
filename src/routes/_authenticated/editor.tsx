@@ -50,7 +50,7 @@ function Editor() {
   const [checkout, setCheckout] = useState("");
   const [saving, setSaving] = useState(false);
   const [previewCta, setPreviewCta] = useState(true);
-  const [open, setOpen] = useState<string | null>("style");
+  const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
     if (search.v && videos.some((v) => v.id === search.v)) setVideoId(search.v);
@@ -154,26 +154,27 @@ function Editor() {
           <Link to="/videos" className="mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-3 w-3" /> Voltar à biblioteca
           </Link>
-          <h1 className="text-3xl font-bold">Configurações de Vídeo</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Editor do vídeo</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Faça as alterações, confira ao lado e clique em Salvar.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={videoId} onValueChange={setVideoId}>
-            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-52"><SelectValue placeholder="Escolher vídeo" /></SelectTrigger>
             <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
           </Select>
           <Select value="" onValueChange={loadFrom}>
-            <SelectTrigger className="w-56"><Download className="mr-1 h-4 w-4" /><SelectValue placeholder="Carregar configurações" /></SelectTrigger>
+            <SelectTrigger className="w-52"><Download className="mr-1 h-4 w-4" /><SelectValue placeholder="Copiar ajustes de…" /></SelectTrigger>
             <SelectContent>{videos.filter((v) => v.id !== videoId).map((v) => <SelectItem key={v.id} value={v.id}>De: {v.name}</SelectItem>)}
               <SelectItem value="__none" disabled>{videos.length < 2 ? "Nenhuma outra VSL" : "—"}</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={save} disabled={saving}>{saving ? "Salvando…" : "Salvar"}</Button>
+          <Button onClick={save} disabled={saving} className="min-w-28">{saving ? "Salvando…" : "Salvar alterações"}</Button>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div className="panel overflow-hidden">
-          <Section id="style" title="Estilo">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="panel overflow-hidden rounded-xl">
+          <Section id="style" title="Aparência">
             <div className="flex gap-2 py-2">
               {(["9:16", "16:9"] as const).map((a) => (
                 <Button key={a} variant={s.aspect === a ? "default" : "secondary"} size="sm" onClick={() => set("aspect", a)}>
@@ -185,7 +186,7 @@ function Editor() {
             <Toggle k="rounded" label="Bordas arredondadas" />
           </Section>
 
-          <Section id="bar" title="Progresso Inteligente" toggle="showBar">
+          <Section id="bar" title="Barra de progresso" toggle="showBar">
             <Toggle k="fastBar" label="Barra acelerada" hint="Anda rápido no início e desacelera — dá sensação de vídeo curto" />
             <Color k="barColor" label="Cor da barra" />
             <div className="flex items-center justify-between gap-4 py-2"><div><p className="text-sm">Aceleração</p><p className="text-xs text-muted-foreground">1 = linear · maior = mais rápido no início (padrão 32)</p></div>
@@ -194,12 +195,12 @@ function Editor() {
               <Input type="number" min={2} max={20} value={s.barHeight} onChange={(e) => set("barHeight", Number(e.target.value) || 5)} className="num h-8 w-20" /></div>
           </Section>
 
-          <Section id="autoplay" title="Smart Autoplay™" toggle="autoplay">
+          <Section id="autoplay" title="Início automático" toggle="autoplay">
             <p className="py-2 text-xs text-muted-foreground">O vídeo começa mudo em loop; ao tocar, reinicia do zero com som. Desligado, mostra a thumbnail com botão de play.</p>
             <Text k="autoplayImage" label="Imagem ou GIF sobre o vídeo (URL)" placeholder="https://…/imagem.gif — vazio usa a thumbnail" />
             <div className="my-3 rounded-xl border border-border bg-muted/30 p-4">
               <p className="text-sm font-medium">Posição da imagem</p>
-              <p className="mt-1 text-xs text-muted-foreground">Abra esta seção pela seta para editar a imagem. Ao fechar a seção, a edição é bloqueada. Ao arrastar, a imagem encaixa automaticamente no centro quando chega perto.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Arraste a imagem na prévia para mudar a posição. Use os botões abaixo para ajustar rapidamente.</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={() => { set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Centralizar</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => set("autoplayImageSize", 70)}>Tamanho padrão</Button>
@@ -220,24 +221,24 @@ function Editor() {
             <Text k="autoplayText" label="Mensagem sobre o vídeo (opcional)" placeholder="Seu vídeo já começou — toque para ouvir" />
           </Section>
 
-          <Section id="turbo" title="Turbo" toggle="turbo">
+          <Section id="turbo" title="Velocidade e carregamento" toggle="turbo">
             <p className="py-2 text-xs text-muted-foreground">Pré-carrega o vídeo inteiro assim que a página abre, para começar mais rápido, e permite acelerar a velocidade do vídeo.</p>
             <div className="flex items-center justify-between gap-4 py-2"><div><p className="text-sm">Velocidade</p><p className="text-xs text-muted-foreground">Ex.: 1.1 ou 1.2 (1 = normal)</p></div>
               <Input type="number" step={0.05} min={0.5} max={2} value={s.turboSpeed} onChange={(e) => set("turboSpeed", Math.min(2, Math.max(0.5, Number(e.target.value) || 1)))} className="num h-8 w-20" /></div>
           </Section>
 
-          <Section id="headline" title="Headlines" toggle="headline">
+          <Section id="headline" title="Texto acima do vídeo" toggle="headline">
             <Text k="headlineText" label="Texto acima do vídeo" />
             <Color k="headlineColor" label="Cor do texto" />
           </Section>
 
-          <Section id="traffic" title="Filtro de Tráfego" toggle="trafficFilter" badge="novo">
-            <p className="py-2 text-xs text-muted-foreground">Só mostra o vídeo para quem chega com o parâmetro no link (ex.: tráfego pago). Os demais são redirecionados ou não veem o player.</p>
+          <Section id="traffic" title="Filtro de visitantes" toggle="trafficFilter" badge="novo">
+            <p className="py-2 text-xs text-muted-foreground">Use esta opção apenas se souber configurar parâmetros de URL.</p>
             <Text k="trafficParam" label="Parâmetro obrigatório" placeholder="utm_source" />
             <Text k="trafficRedirect" label="Redirecionar para (opcional)" placeholder="https://..." />
           </Section>
 
-          <Section id="cta" title="Botões de ação" toggle="cta">
+          <Section id="cta" title="Botão de compra" toggle="cta">
             <Text k="ctaText" label="Texto do botão" />
             <div className="grid gap-3 py-2 sm:grid-cols-2">
               <div className="space-y-1.5"><Label>Aparece em (hh:mm:ss)</Label><Input value={offer} onChange={(e) => setOffer(e.target.value)} placeholder="01:01:45" className="num" /></div>
@@ -248,17 +249,17 @@ function Editor() {
             <Toggle k="ctaPulse" label="Animação de pulso" />
           </Section>
 
-          <Section id="thumb" title="ThumbSniper™" toggle="thumbSniper">
+          <Section id="thumb" title="Imagem ao pausar ou terminar" toggle="thumbSniper">
             <Text k="thumbPauseUrl" label="Imagem ao pausar (link)" placeholder="https://..." />
             <Text k="thumbEndUrl" label="Imagem ao terminar (link)" placeholder="https://..." />
           </Section>
 
-          <Section id="resume" title="Continuar assistindo" toggle="resumePrompt">
+          <Section id="resume" title="Retomar vídeo" toggle="resumePrompt">
             <Text k="resumeText" label="Mensagem" />
           </Section>
 
-          <Section id="hooks" title="Mini-Ganchos™" toggle="hooks">
-            <p className="py-2 text-xs text-muted-foreground">Frases curtas que aparecem sobre o vídeo em momentos de queda de retenção.</p>
+          <Section id="hooks" title="Mensagens durante o vídeo" toggle="hooks">
+            <p className="py-2 text-xs text-muted-foreground">Adicione mensagens que aparecem em momentos específicos do vídeo.</p>
             <div className="space-y-2 py-2">
               {s.hookList.map((h, i) => (
                 <div key={i} className="flex gap-2">
@@ -272,8 +273,8 @@ function Editor() {
             </div>
           </Section>
 
-          <Section id="pixels" title="Pixels" toggle="pixels">
-            <p className="py-2 text-xs text-muted-foreground">Dispara ViewContent no play e InitiateCheckout no clique do botão.</p>
+          <Section id="pixels" title="Rastreamento e métricas" toggle="pixels">
+            <p className="py-2 text-xs text-muted-foreground">Eventos enviados para suas ferramentas de análise.</p>
             <Text k="fbPixel" label="ID do Pixel da Meta" placeholder="123456789012345" />
             <Text k="ga4" label="ID do Google Analytics 4" placeholder="G-XXXXXXX" />
           </Section>
@@ -282,7 +283,7 @@ function Editor() {
             <Text k="captionsUrl" label="Link do arquivo de legenda (.vtt)" placeholder="https://.../legenda.vtt" />
           </Section>
 
-          <Section id="playback" title="Opções de Reprodução">
+          <Section id="playback" title="Controles do vídeo">
             <div>
               <Toggle k="allowPause" label="Permitir pausar" hint="Toque no vídeo pausa e mostra a tela de pausa" />
               {s.allowPause && <Input value={s.pauseText} onChange={(e) => set("pauseText", e.target.value)} className="mb-2" />}
@@ -295,9 +296,9 @@ function Editor() {
         <div className="lg:sticky lg:top-8 lg:self-start">
           <div className="panel overflow-hidden p-3">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">Prévia</p>
+              <div><p className="text-sm font-medium">Prévia ao vivo</p><p className="text-xs text-muted-foreground">Atualiza enquanto você edita</p></div>
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                Mostrar botão <Switch checked={previewCta} onCheckedChange={setPreviewCta} />
+                Botão visível <Switch checked={previewCta} onCheckedChange={setPreviewCta} />
               </label>
             </div>
             <VslPlayer
@@ -307,7 +308,7 @@ function Editor() {
               onAutoplayImageTransform={open === "autoplay" ? ({ x, y, size }) => setS((prev) => ({ ...prev, autoplayImageX: Math.round(x * 10) / 10, autoplayImageY: Math.round(y * 10) / 10, autoplayImageSize: Math.round(size * 10) / 10 })) : undefined}
               preview
             />
-            <p className="mt-2 text-xs text-muted-foreground">A prévia não gera métricas nem dispara pixels.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Prévia de teste: não registra visitas nem dispara pixels.</p>
           </div>
         </div>
       </div>
