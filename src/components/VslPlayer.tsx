@@ -180,7 +180,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           })()}
         </div>
       )}
-      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent leading-none " + (videoRatio && videoRatio < 1 ? "max-w-[420px] " : "") + (cfg.rounded ? " rounded-xl" : "")} style={{ aspectRatio: String(videoRatio ?? (cfg.aspect === "9:16" ? 9 / 16 : 16 / 9)) }}>
+      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent leading-none " + (videoRatio && videoRatio < 1 ? "max-w-[420px] " : "") + (cfg.rounded ? " rounded-xl" : "")} style={{ aspectRatio: String(videoRatio ?? (cfg.aspect === "9:16" ? 9 / 16 : 16 / 9)), borderRadius: cfg.rounded ? "12px" : "0", overflow: "hidden", background: "transparent", backgroundColor: "transparent", isolation: "isolate" }}>
         <video
           ref={ref}
           src={video.video_url}
@@ -193,7 +193,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           poster={video.thumbnail_url ?? undefined}
           disablePictureInPicture
           controlsList="nodownload noplaybackrate noremoteplayback"
-          className="absolute inset-0 block h-full w-full max-w-full bg-transparent object-contain"
+          className="absolute inset-0 block h-full w-full max-w-full bg-transparent object-contain" style={{ borderRadius: cfg.rounded ? "12px" : "0", clipPath: cfg.rounded ? "inset(0 round 12px)" : "none", background: "transparent", backgroundColor: "transparent" }}
           onClick={togglePause}
           onLoadedMetadata={() => { const v = el(); if (v.videoWidth > 0 && v.videoHeight > 0) setVideoRatio(v.videoWidth / v.videoHeight); tracker.current?.setDuration(v.duration); update(); }}
           onDurationChange={update}
