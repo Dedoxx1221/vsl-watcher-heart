@@ -6,3 +6,4 @@
 - [x] Reaproveitar funções estilo VTurb (recriadas, código da VTurb não é reutilizável)
 - [x] Diagnóstico com IA (causas de abandono + edições)
 - [x] Retenção estilo VTurb: vídeo sincronizado ao gráfico (clicar no gráfico mostra o trecho)
+- [ ] Editor do player estilo VTurb (pausa, cores, texto do CTA, formato)
