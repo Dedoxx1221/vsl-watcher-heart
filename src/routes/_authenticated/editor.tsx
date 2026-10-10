@@ -50,7 +50,6 @@ function Editor() {
   const [checkout, setCheckout] = useState("");
   const [saving, setSaving] = useState(false);
   const [previewCta, setPreviewCta] = useState(true);
-  const [editingAutoplayImage, setEditingAutoplayImage] = useState(false);
   const [open, setOpen] = useState<string | null>("style");
 
   useEffect(() => {
@@ -180,11 +179,8 @@ function Editor() {
             <Text k="autoplayImage" label="Imagem ou GIF sobre o vídeo (URL)" placeholder="https://…/imagem.gif — vazio usa a thumbnail" />
             <div className="my-3 rounded-xl border border-border bg-muted/30 p-4">
               <p className="text-sm font-medium">Posição da imagem</p>
-              <p className="mt-1 text-xs text-muted-foreground">A edição fica bloqueada até você clicar em “Editar Smart Player”. Ao arrastar, a imagem encaixa automaticamente no centro quando chega perto.</p>
-              <Button type="button" variant={editingAutoplayImage ? "default" : "outline"} size="sm" className="mt-3 w-full" onClick={() => setEditingAutoplayImage((v) => !v)}>
-                {editingAutoplayImage ? "Concluir edição" : "Editar Smart Player"}
-              </Button>
-              {editingAutoplayImage && <div className="mt-3 grid grid-cols-2 gap-2">
+              <p className="mt-1 text-xs text-muted-foreground">Abra esta seção pela seta para editar a imagem. Ao fechar a seção, a edição é bloqueada. Ao arrastar, a imagem encaixa automaticamente no centro quando chega perto.</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={() => { set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Centralizar</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => set("autoplayImageSize", 70)}>Tamanho padrão</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => {
@@ -199,7 +195,7 @@ function Editor() {
                   image.onload = () => set("autoplayImageSize", Math.min(100, 95 * ratio * image.naturalWidth / Math.max(1, image.naturalHeight)));
                   image.src = s.autoplayImage || video.thumbnail_url || "";
                 }}>Enquadrar altura</Button>
-              </div>}
+              </div>
             </div>
             <Text k="autoplayText" label="Mensagem sobre o vídeo (opcional)" placeholder="Seu vídeo já começou — toque para ouvir" />
           </Section>
@@ -288,7 +284,7 @@ function Editor() {
               key={`${video.id}-${previewCta}-${s.autoplay}`}
               video={{ ...video, checkout_url: checkout || video.checkout_url, offer_time_seconds: parseTime(offer) }}
               settings={{ ...s, ctaAlways: previewCta }}
-              onAutoplayImageTransform={editingAutoplayImage ? ({ x, y, size }) => setS((prev) => ({ ...prev, autoplayImageX: Math.round(x * 10) / 10, autoplayImageY: Math.round(y * 10) / 10, autoplayImageSize: Math.round(size * 10) / 10 })) : undefined}
+              onAutoplayImageTransform={open === "autoplay" ? ({ x, y, size }) => setS((prev) => ({ ...prev, autoplayImageX: Math.round(x * 10) / 10, autoplayImageY: Math.round(y * 10) / 10, autoplayImageSize: Math.round(size * 10) / 10 })) : undefined}
               preview
             />
             <p className="mt-2 text-xs text-muted-foreground">A prévia não gera métricas nem dispara pixels.</p>
