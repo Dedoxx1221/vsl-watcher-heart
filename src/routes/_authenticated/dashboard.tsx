@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingDown, TrendingUp, Radio, MapPin, Monitor, Smartphone, Tablet, Globe, MousePointerClick, Compass, ChartNoAxesColumn } from "lucide-react";
+import { Radio, MapPin, Monitor, Smartphone, Tablet, Globe, MousePointerClick, Compass, ChartNoAxesColumn } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -337,33 +337,7 @@ function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; vide
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="panel p-5 lg:col-span-2">
-          <h2 className="mb-3 text-lg font-semibold">Momentos críticos</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <p className="mb-2 text-xs uppercase tracking-wider text-destructive">Maiores quedas</p>
-              {changes.drops.length === 0 && <p className="text-sm text-muted-foreground">Sem quedas relevantes.</p>}
-              {changes.drops.map((d) => (
-                <div key={d.to} className="flex items-center justify-between border-b border-border py-2 text-sm last:border-0">
-                  <span className="num flex items-center gap-2"><TrendingDown className="h-4 w-4 text-destructive" />{fmtTime(d.from)} → {fmtTime(d.to)}</span>
-                  <span className="num text-destructive">{d.d.toFixed(1)} p.p.</span>
-                </div>
-              ))}
-            </div>
-            <div>
-              <p className="mb-2 text-xs uppercase tracking-wider text-success">Trechos que recuperam (re-assistidos)</p>
-              {changes.gains.length === 0 && <p className="text-sm text-muted-foreground">Nenhum trecho com aumento.</p>}
-              {changes.gains.map((d) => (
-                <div key={d.to} className="flex items-center justify-between border-b border-border py-2 text-sm last:border-0">
-                  <span className="num flex items-center gap-2"><TrendingUp className="h-4 w-4 text-success" />{fmtTime(d.from)} → {fmtTime(d.to)}</span>
-                  <span className="num text-success">+{d.d.toFixed(1)} p.p.</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
+      <div className="grid gap-4">
         <div className="panel p-5">
           <h2 className="mb-3 text-lg font-semibold">Funil de conversão</h2>
           <div className="space-y-3">
