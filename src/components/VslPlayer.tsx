@@ -36,7 +36,7 @@ function fire(cfg: PlayerSettings, fb: string, ga: string) {
   if (cfg.ga4) w.gtag?.("event", ga);
 }
 
-export function VslPlayer({ video, settings, preview = false, onAutoplayImageTransform }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean; onAutoplayImageTransform?: (next: { x: number; y: number; size: number }) => void }) {
+export function VslPlayer({ video, settings, preview = false, onAutoplayImageTransform }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean; onAutoplayImageTransform?: undefined | ((next: { x: number; y: number; size: number }) => void) }) {
   const cfg = settings ?? parseSettings(video.player_settings);
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
@@ -175,7 +175,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           loop={!preview && cfg.autoplay}
           playsInline
           preload="metadata"
-          fetchPriority="high"
+          {...({ fetchpriority: "high" } as object)}
           crossOrigin={cfg.captions && cfg.captionsUrl ? "anonymous" : undefined}
           poster={video.thumbnail_url ?? undefined}
           disablePictureInPicture
@@ -238,7 +238,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                 className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "pointer-events-none")}
                 onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); } }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
-                  if ((e.target as HTMLElement).dataset.resizeHandle) return;
+                  if ((e.target as HTMLElement).dataset["resizeHandle"]) return;
                   e.preventDefault(); e.stopPropagation(); setImageSelected(true); setImageMoving(true);
                   const box = ref.current?.getBoundingClientRect(); if (!box) return;
                   imageDrag.current = { mode: "move", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
@@ -323,6 +323,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   </>
                 )}
               </div>
+              </>
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
