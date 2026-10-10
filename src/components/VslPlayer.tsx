@@ -56,6 +56,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   const [bar, setBar] = useState(0);
   const [showCta, setShowCta] = useState(!!(preview && cfg.ctaAlways));
   const [query, setQuery] = useState("");
+  const [autoplayImageRatio, setAutoplayImageRatio] = useState<number | null>(null);
 
   useEffect(() => {
     if (preview) { ref.current?.pause(); return; }
@@ -225,10 +226,16 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                 src={cfg.autoplayImage || video.thumbnail_url!}
                 alt="Toque para ouvir"
                 draggable={false}
+                onLoad={(e) => {
+                  const image = e.currentTarget;
+                  if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+                    setAutoplayImageRatio(image.naturalWidth / image.naturalHeight);
+                  }
+                }}
                 onClick={(e) => { if (preview && onAutoplayImageTransform) e.stopPropagation(); }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
                   e.preventDefault(); e.stopPropagation();
-                  const box = wrap.current?.getBoundingClientRect();
+                  const box = ref.current?.getBoundingClientRect();
                   if (!box) return;
                   imageDrag.current = { mode: "move", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
                   e.currentTarget.setPointerCapture(e.pointerId);
@@ -245,8 +252,15 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   left: `${Math.min(100, Math.max(0, cfg.autoplayImageX ?? 50))}%`,
                   top: `${Math.min(100, Math.max(0, cfg.autoplayImageY ?? 50))}%`,
                   transform: "translate(-50%, -50%)",
-                  width: `${Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70))}%`,
+                  width: `${Math.min(
+                    Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)),
+                    autoplayImageRatio && ref.current
+                      ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio
+                      : 100
+                  )}%`,
                   maxHeight: "95%",
+                  height: "auto",
+                  aspectRatio: autoplayImageRatio ? String(autoplayImageRatio) : undefined,
                   touchAction: preview && onAutoplayImageTransform ? "none" : undefined,
                   pointerEvents: preview && onAutoplayImageTransform ? "auto" : undefined,
                 }}
@@ -260,7 +274,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                   onPointerDown={(e) => {
                     e.preventDefault(); e.stopPropagation();
-                    const box = wrap.current?.getBoundingClientRect(); if (!box) return;
+                    const box = ref.current?.getBoundingClientRect(); if (!box) return;
                     imageDrag.current = { mode: "resize", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
                     e.currentTarget.setPointerCapture(e.pointerId);
                   }}
@@ -273,7 +287,21 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   onPointerUp={() => { imageDrag.current = null; }}
                   onPointerCancel={() => { imageDrag.current = null; }}
                   className="absolute z-[5] h-3.5 w-3.5 rounded-sm border-2 border-white bg-primary shadow-md cursor-nwse-resize touch-none"
-                  style={{ left: `${cfg.autoplayImageX ?? 50}%`, top: `${cfg.autoplayImageY ?? 50}%`, transform: `translate(${sx * (cfg.autoplayImageSize ?? 70) / 2}%, ${sy * (cfg.autoplayImageSize ?? 70) / 2}%)` }}
+                  style={{
+                    left: `${cfg.autoplayImageX ?? 50}%`,
+                    top: `${cfg.autoplayImageY ?? 50}%`,
+                    width: 14,
+                    height: 14,
+                    transform: `translate(${sx * (Math.min(
+                      Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)),
+                      autoplayImageRatio && ref.current
+                        ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio
+                        : 100
+                    ) / 2)}%, ${sy * (autoplayImageRatio ? (Math.min(
+                      Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)),
+                      ref.current ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio : 100
+                    ) / autoplayImageRatio) / 2 : (cfg.autoplayImageSize ?? 70) / 2)}%)`
+                  }}
                 />
               ))))}
               </>
