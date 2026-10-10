@@ -97,7 +97,7 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
       if (!text) return;
       const prev = result[result.length - 1];
       const same = prev && prev.color === inherited.color && prev.size === inherited.size && prev.bold === inherited.bold && prev.italic === inherited.italic && prev.underline === inherited.underline;
-      if (same) prev.text += text;
+      if (same && prev) prev.text += text;
       else result.push({ text, ...inherited });
       return;
     }
