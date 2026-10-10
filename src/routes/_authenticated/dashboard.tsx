@@ -387,15 +387,16 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="panel p-5 md:p-6">
-          <h2 className="mb-1 text-lg font-semibold">Funil de conversão</h2>
-          <p className="mb-4 text-xs text-muted-foreground">Veja quantas pessoas avançam de uma etapa para a próxima.</p>
-          <div className="space-y-3">
+        <div className="panel overflow-hidden p-0">
+          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Conversão</p><h2 className="text-lg font-semibold tracking-tight">Funil de conversão</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Acompanhe a progressão entre reprodução, oferta e checkout.</p></div>
+          <div className="space-y-5 p-5 md:p-6">
+          <div className="space-y-5">
             {funnel.map((f, i) => (
               <div key={f.name}>
-                <div className="flex justify-between text-sm"><span>{f.name}</span><span className="num">{f.n} · {pct(f.n, a.plays).toFixed(1)}%</span></div>
-                <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-secondary">
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${pct(f.n, a.plays)}%`, opacity: 1 - i * 0.25 }} />
+                <div className="mb-2 flex items-end justify-between gap-3"><div><p className="text-sm font-medium">{f.name}</p><p className="mt-0.5 text-xs text-muted-foreground">Etapa {i + 1} de {funnel.length}</p></div><div className="text-right"><p className="num text-base font-semibold">{f.n.toLocaleString("pt-BR")}</p><p className="num text-xs text-muted-foreground">{pct(f.n, a.plays).toFixed(1)}%</p></div></div>
+                <div className="h-3 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${pct(f.n, a.plays)}%`, opacity: 1 - i * 0.22 }} />
                 </div>
                 {i > 0 && <p className="mt-1 text-xs text-muted-foreground">{pct(f.n, funnel[i - 1]!.n).toFixed(1)}% da etapa anterior</p>}
               </div>
@@ -405,14 +406,15 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-        <div className="panel p-5 md:p-6">
-          <h2 className="mb-3 text-lg font-semibold">Por dia</h2>
-          <div className="h-56">
+        <div className="panel overflow-hidden p-0">
+          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Tendência</p><h2 className="text-lg font-semibold tracking-tight">Desempenho por dia</h2><p className="mt-1 text-xs text-muted-foreground">Compare visualizações, reproduções e cliques no período selecionado.</p></div>
+          <div className="p-4 md:p-5">
+          <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={a.daily}>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={11} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} allowDecimals={false} />
+                <CartesianGrid stroke="var(--border)" strokeDasharray="2 6" vertical={false} />
+                <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }} cursor={{ fill: "var(--accent)" }} />
                 <Bar dataKey="views" name="Visualizações" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
                 <Bar dataKey="plays" name="Plays" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
@@ -421,16 +423,16 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="panel p-5 md:p-6">
-          <h2 className="mb-1 text-lg font-semibold">Eventos registrados</h2>
-          <p className="mb-3 text-xs text-muted-foreground">Ações detectadas dentro do player.</p>
+        <div className="panel overflow-hidden p-0">
+          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Interações</p><h2 className="text-lg font-semibold tracking-tight">Eventos registrados</h2><p className="mt-1 text-xs text-muted-foreground">Ações detectadas dentro do player no período selecionado.</p></div>
+          <div className="px-5 py-3 md:px-6">
           {([
             ["Play", "play"], ["Pausa", "pause"], ["Retomada", "resume"], ["Avanço", "seek_forward"],
             ["Retorno", "seek_backward"], ["Abandono", "abandon"], ["Chegada ao CTA", "cta_reached"],
             ["Clique no checkout", "checkout_click"], ["Assistiu até o fim", "complete"],
           ] as [string, string][]).map(([l, k]) => (
-            <div key={k} className="flex justify-between border-b border-border py-1.5 text-sm last:border-0">
-              <span className="text-muted-foreground">{l}</span><span className="num">{ev(k)}</span>
+            <div key={k} className="flex items-center justify-between gap-3 border-b border-border/70 py-2.5 text-sm last:border-0">
+              <span className="text-muted-foreground">{l}</span><span className="num rounded-md bg-secondary px-2 py-1 text-xs font-semibold">{ev(k)}</span>
             </div>
           ))}
         </div>
