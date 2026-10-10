@@ -24,6 +24,8 @@ export type PlayerSettings = {
   turboSpeed: number;
   // Headlines
   headline: boolean;
+  headlineUseImage: boolean;
+  headlineImageUrl: string;
   headlineText: string;
   headlineColor: string;
   headlineAlign: "left" | "center" | "right";
@@ -85,6 +87,8 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   turbo: false,
   turboSpeed: 1.1,
   headline: false,
+  headlineUseImage: false,
+  headlineImageUrl: "",
   headlineText: "Assista até o final — o melhor vem depois",
   headlineColor: "#ffffff",
   headlineAlign: "center",
