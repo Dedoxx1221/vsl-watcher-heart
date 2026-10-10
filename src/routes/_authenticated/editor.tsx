@@ -542,7 +542,7 @@ function Editor() {
                   </details>
                 </>
               )}
-            </div>
+            </div>}
             {headlineExpanded && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-8">
               <div className="flex max-h-full w-full max-w-4xl flex-col rounded-xl border border-[#3a3a3a] bg-[#222] p-4 text-white shadow-2xl">
                 <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold">Editor de headline expandido</p><Button type="button" variant="ghost" size="sm" onClick={()=>setHeadlineExpanded(false)}>Fechar ✕</Button></div>
