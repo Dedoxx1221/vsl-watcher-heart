@@ -24,10 +24,10 @@ function Layout() {
           <span className="font-display text-lg font-bold">Vexora</span>
         </div>
         <nav className="flex gap-1 md:flex-col">
+          <Link to="/videos" className={item} activeProps={active}><Film className="h-4 w-4" />Biblioteca</Link>
           <Link to="/dashboard" className={item} activeProps={active}><BarChart3 className="h-4 w-4" />Analytics</Link>
           <Link to="/ai" className={item} activeProps={active}><Sparkles className="h-4 w-4" />Diagnóstico IA</Link>
           <Link to="/editor" className={item} activeProps={active}><SlidersHorizontal className="h-4 w-4" />Editor do player</Link>
-          <Link to="/videos" className={item} activeProps={active}><Film className="h-4 w-4" />Biblioteca</Link>
           <button className={item + " md:mt-auto"} onClick={async () => { await supabase.auth.signOut(); nav({ to: "/auth" }); }}>
             <LogOut className="h-4 w-4" />Sair
           </button>
