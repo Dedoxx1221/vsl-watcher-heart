@@ -130,6 +130,7 @@ export type Database = {
           name: string
           offer_time_seconds: number | null
           owner_id: string | null
+          player_settings: Json
           thumbnail_url: string | null
           video_url: string
         }
@@ -141,6 +142,7 @@ export type Database = {
           name: string
           offer_time_seconds?: number | null
           owner_id?: string | null
+          player_settings?: Json
           thumbnail_url?: string | null
           video_url: string
         }
@@ -152,6 +154,7 @@ export type Database = {
           name?: string
           offer_time_seconds?: number | null
           owner_id?: string | null
+          player_settings?: Json
           thumbnail_url?: string | null
           video_url?: string
         }

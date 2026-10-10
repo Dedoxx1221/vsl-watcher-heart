@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEditorRouteImport } from './routes/_authenticated/editor'
 import { Route as AuthenticatedVideosRouteImport } from './routes/_authenticated/videos'
+import { Route as ApiDiagnosisRouteImport } from './routes/api/diagnosis'
 import { Route as EmbedVideoIdRouteImport } from './routes/embed.$videoId'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 
@@ -31,15 +34,30 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAiRoute = AuthenticatedAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEditorRoute = AuthenticatedEditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedVideosRoute = AuthenticatedVideosRouteImport.update({
   id: '/videos',
   path: '/videos',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiDiagnosisRoute = ApiDiagnosisRouteImport.update({
+  id: '/api/diagnosis',
+  path: '/api/diagnosis',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const EmbedVideoIdRoute = EmbedVideoIdRouteImport.update({
   id: '/embed/$videoId',
@@ -55,16 +73,22 @@ const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/ai': typeof AuthenticatedAiRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/editor': typeof AuthenticatedEditorRoute
   '/videos': typeof AuthenticatedVideosRoute
+  '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/ai': typeof AuthenticatedAiRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/editor': typeof AuthenticatedEditorRoute
   '/videos': typeof AuthenticatedVideosRoute
+  '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -73,8 +97,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/ai': typeof AuthenticatedAiRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/editor': typeof AuthenticatedEditorRoute
   '/_authenticated/videos': typeof AuthenticatedVideosRoute
+  '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -83,16 +110,22 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/ai'
     | '/dashboard'
+    | '/editor'
     | '/videos'
+    | '/api/diagnosis'
     | '/embed/$videoId'
     | '/api/public/track'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/ai'
     | '/dashboard'
+    | '/editor'
     | '/videos'
+    | '/api/diagnosis'
     | '/embed/$videoId'
     | '/api/public/track'
   id:
@@ -100,8 +133,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/ai'
     | '/_authenticated/dashboard'
+    | '/_authenticated/editor'
     | '/_authenticated/videos'
+    | '/api/diagnosis'
     | '/embed/$videoId'
     | '/api/public/track'
   fileRoutesById: FileRoutesById
@@ -110,6 +146,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiDiagnosisRoute: typeof ApiDiagnosisRoute
   EmbedVideoIdRoute: typeof EmbedVideoIdRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
@@ -137,11 +174,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/ai': {
+      id: '/_authenticated/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AuthenticatedAiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/editor': {
+      id: '/_authenticated/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof AuthenticatedEditorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/videos': {
@@ -150,6 +201,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/videos'
       preLoaderRoute: typeof AuthenticatedVideosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/diagnosis': {
+      id: '/api/diagnosis'
+      path: '/api/diagnosis'
+      fullPath: '/api/diagnosis'
+      preLoaderRoute: typeof ApiDiagnosisRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/embed/$videoId': {
       id: '/embed/$videoId'
@@ -169,12 +227,16 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAiRoute: typeof AuthenticatedAiRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEditorRoute: typeof AuthenticatedEditorRoute
   AuthenticatedVideosRoute: typeof AuthenticatedVideosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAiRoute: AuthenticatedAiRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEditorRoute: AuthenticatedEditorRoute,
   AuthenticatedVideosRoute: AuthenticatedVideosRoute,
 }
 
@@ -185,6 +247,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiDiagnosisRoute: ApiDiagnosisRoute,
   EmbedVideoIdRoute: EmbedVideoIdRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
 }

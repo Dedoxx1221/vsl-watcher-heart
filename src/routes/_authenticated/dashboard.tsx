@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
@@ -77,7 +77,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} />}
+      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} />}
     </div>
   );
 }
@@ -92,7 +92,10 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
   );
 }
 
-function Body({ a, offer }: { a: Analytics; offer: number | null }) {
+function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; videoUrl: string }) {
+  const vref = useRef<HTMLVideoElement>(null);
+  const [cursor, setCursor] = useState(0);
+  const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
   const series = useMemo(() => a.retention.map(([t, n]) => ({ t, r: pct(n, a.plays) })), [a]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
@@ -141,9 +144,31 @@ function Body({ a, offer }: { a: Analytics; offer: number | null }) {
           <h2 className="text-lg font-semibold">Retenção ao longo do vídeo</h2>
           <p className="text-xs text-muted-foreground">Somente reprodução real — avanços pela barra não contam. Intervalo: {a.bucket_size}s · duração {fmtTime(a.duration)}</p>
         </div>
-        <div className="h-80">
+        <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+        <div className="space-y-2">
+          <video
+            ref={vref}
+            src={videoUrl}
+            controls
+            preload="metadata"
+            playsInline
+            className="aspect-[9/16] w-full rounded-md bg-background object-contain"
+            onTimeUpdate={(e) => setCursor(e.currentTarget.currentTime)}
+          />
+          <div className="rounded-md bg-secondary p-2 text-center">
+            <p className="num text-sm">{fmtTime(cursor)}</p>
+            <p className="num text-lg font-semibold text-primary">{(series.reduce((r, p) => (p.t <= cursor ? p.r : r), series[0]?.r ?? 0)).toFixed(1)}%</p>
+            <p className="text-xs text-muted-foreground">ainda assistindo neste ponto</p>
+          </div>
+        </div>
+        <div className="h-80 lg:h-auto lg:min-h-[420px]">
           <ResponsiveContainer>
-            <AreaChart data={series} margin={{ left: -10, right: 10 }}>
+            <AreaChart
+              data={series}
+              margin={{ left: -10, right: 10 }}
+              className="cursor-crosshair"
+              onClick={(st) => { const t = Number((st as { activeLabel?: number | string })?.activeLabel); if (!isNaN(t)) seek(t); }}
+            >
               <defs>
                 <linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.5} />
@@ -160,10 +185,13 @@ function Body({ a, offer }: { a: Analytics; offer: number | null }) {
               />
               {changes.drops.slice(0, 3).map((d) => <ReferenceLine key={d.to} x={d.to} stroke="var(--destructive)" strokeDasharray="2 4" />)}
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
+              <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
               <Area type="stepAfter" dataKey="r" stroke="var(--chart-1)" strokeWidth={2} fill="url(#rg)" isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">Clique em qualquer ponto do gráfico para ver o trecho do vídeo naquele momento.</p>
         <div className="mt-4 grid grid-cols-5 gap-2">
           {["10", "25", "50", "75", "100"].map((k) => (
             <div key={k} className="rounded-md bg-secondary p-3 text-center">
