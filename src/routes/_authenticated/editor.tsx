@@ -36,7 +36,7 @@ function parseTime(s: string): number | null {
   return parts.reduce((a, p) => a * 60 + p, 0);
 }
 
-type BoolKey = { [K in keyof PlayerSettings]: PlayerSettings[K] extends boolean | undefined ? K : never }[keyof PlayerSettings];
+type BoolKey = { [K in keyof PlayerSettings]-?: PlayerSettings[K] extends boolean | undefined ? K : never }[keyof PlayerSettings] & keyof PlayerSettings;
 
 function Editor() {
   const { data: videos } = useSuspenseQuery(videosQuery);
