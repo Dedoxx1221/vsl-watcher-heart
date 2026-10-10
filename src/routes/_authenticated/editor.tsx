@@ -251,7 +251,25 @@ function Editor() {
 
           <Section id="thumb" title="Imagem ao pausar ou terminar" toggle="thumbSniper">
             <Text k="thumbPauseUrl" label="Imagem ao pausar (link)" placeholder="https://..." />
+            {s.thumbPauseUrl.trim() ? (
+              <div className="my-2 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+                <p className="text-xs font-medium text-muted-foreground">Prévia da imagem de pausa</p>
+                <div className="overflow-hidden rounded-md bg-black" style={{ aspectRatio: s.aspect === "9:16" ? "9 / 16" : "16 / 9", maxHeight: 280 }}>
+                  <img src={s.thumbPauseUrl.trim()} alt="Prévia da imagem ao pausar" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} onLoad={(e) => { e.currentTarget.style.display = "block"; }} />
+                </div>
+              </div>
+            ) : (
+              <p className="pb-2 text-xs text-muted-foreground">A prévia da imagem de pausa aparecerá aqui quando você informar o link.</p>
+            )}
             <Text k="thumbEndUrl" label="Imagem ao terminar (link)" placeholder="https://..." />
+            {s.thumbEndUrl.trim() && (
+              <div className="my-2 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+                <p className="text-xs font-medium text-muted-foreground">Prévia da imagem final</p>
+                <div className="overflow-hidden rounded-md bg-black" style={{ aspectRatio: s.aspect === "9:16" ? "9 / 16" : "16 / 9", maxHeight: 280 }}>
+                  <img src={s.thumbEndUrl.trim()} alt="Prévia da imagem ao terminar" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} onLoad={(e) => { e.currentTarget.style.display = "block"; }} />
+                </div>
+              </div>
+            )}
           </Section>
 
           <Section id="resume" title="Retomar vídeo" toggle="resumePrompt">
