@@ -15,6 +15,9 @@ export type PlayerSettings = {
   autoplay: boolean;
   autoplayText: string;
   autoplayImage: string;
+  autoplayImageSize: number;
+  autoplayImageX: number;
+  autoplayImageY: number;
   // Turbo
   turbo: boolean;
   turboSpeed: number;
@@ -69,6 +72,9 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   autoplay: true,
   autoplayText: "",
   autoplayImage: "",
+  autoplayImageSize: 70,
+  autoplayImageX: 50,
+  autoplayImageY: 50,
   turbo: false,
   turboSpeed: 1.1,
   headline: false,
