@@ -282,6 +282,21 @@ function Editor() {
     toast.success(`Configurações de "${src.name}" carregadas. Clique em Salvar para aplicar.`);
   }
 
+  async function copyEmbed() {
+    if (!video) return;
+    const origin = window.location.origin;
+    const id = video.id;
+    const code = `<div id="vsl-${id}" style="position:relative;width:100%;max-width:480px;margin:0 auto;overflow:hidden;background:#000;aspect-ratio:${s.aspect === "9:16" ? "9/16" : "16/9"}"></div>
+<script>(function(){var c=document.getElementById("vsl-${id}");var psrc=${JSON.stringify(video.thumbnail_url || "")};var p;if(psrc){p=document.createElement("img");p.src=psrc;p.alt="";p.loading="eager";p.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";c.appendChild(p);}var f=document.createElement("iframe");f.src="${origin}/embed/${id}"+location.search;f.loading="eager";f.allow="autoplay; fullscreen";f.allowFullscreen=true;f.title="Vexora video player";f.style.cssText="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;opacity:0;transition:opacity .12s";c.appendChild(f);addEventListener("message",function(e){if(e.source===f.contentWindow&&e.data&&e.data.vslHeight){f.style.height=e.data.vslHeight+"px";f.style.aspectRatio="auto";f.style.opacity="1";c.style.aspectRatio="auto";c.style.background="transparent";if(p)p.style.display="none";}});})();</script>`;
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success("Código embed copiado.");
+    } catch {
+      toast.error("Não foi possível copiar. Verifique a permissão de área de transferência do navegador.");
+    }
+  }
+
+
   if (!video) return <div className="panel p-10 text-center text-muted-foreground">Cadastre uma VSL na Biblioteca primeiro.</div>;
 
   const Toggle = ({ k, label, hint }: { k: BoolKey; label: string; hint?: string }) => (
@@ -345,6 +360,7 @@ function Editor() {
               <SelectItem value="__none" disabled>{videos.length < 2 ? "Nenhuma outra VSL" : "—"}</SelectItem>
             </SelectContent>
           </Select>
+          <Button type="button" variant="outline" onClick={copyEmbed} className="min-w-28"><Copy className="mr-2 h-4 w-4" />Copiar embed</Button>
           <Button onClick={save} disabled={saving} className="min-w-28">{saving ? "Salvando…" : "Salvar alterações"}</Button>
         </div>
       </div>
@@ -361,18 +377,7 @@ function Editor() {
                 type="button"
                 variant="outline"
                 className="w-full sm:w-auto"
-                onClick={async () => {
-                  const origin = window.location.origin;
-                  const id = video.id;
-                  const code = `<div id="vsl-${id}" style="position:relative;width:100%;max-width:480px;margin:0 auto;overflow:hidden;background:#000;aspect-ratio:${s.aspect === "9:16" ? "9/16" : "16/9"}"></div>
-<script>(function(){var c=document.getElementById("vsl-${id}");var psrc=${JSON.stringify(video.thumbnail_url || "")};var p;if(psrc){p=document.createElement("img");p.src=psrc;p.alt="";p.loading="eager";p.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";c.appendChild(p);}var f=document.createElement("iframe");f.src="${origin}/embed/${id}"+location.search;f.loading="eager";f.allow="autoplay; fullscreen";f.allowFullscreen=true;f.title="Vexora video player";f.style.cssText="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;opacity:0;transition:opacity .12s";c.appendChild(f);addEventListener("message",function(e){if(e.source===f.contentWindow&&e.data&&e.data.vslHeight){f.style.height=e.data.vslHeight+"px";f.style.aspectRatio="auto";f.style.opacity="1";c.style.aspectRatio="auto";c.style.background="transparent";if(p)p.style.display="none";}});})();</script>`;
-                  try {
-                    await navigator.clipboard.writeText(code);
-                    toast.success("Código embed copiado.");
-                  } catch {
-                    toast.error("Não foi possível copiar. Verifique a permissão de área de transferência do navegador.");
-                  }
-                }}
+                onClick={copyEmbed}
               >
                 <Copy className="mr-2 h-4 w-4" /> Copiar código embed
               </Button>
