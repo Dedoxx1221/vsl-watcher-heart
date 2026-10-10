@@ -44,6 +44,8 @@ export class VslTracker {
     this.s = p;
     this.hasPlayed = p.watched > 0;
     this.save();
+    // Register the viewer immediately so the live dashboard does not wait for the first interval.
+    this.flush(false, true);
     this.timer = setInterval(() => this.flush(false, true), 5000);
   }
 
@@ -130,9 +132,13 @@ export class VslTracker {
   onCheckout(t: number) { this.push("checkout_click", t); this.flush(true); }
 
   onLeave(t: number) {
+    // A page-leave beacon should not leave the session marked as actively playing.
+    this.playing = false;
+    this.pausedAt = null;
+    this.currentPosition = t;
     if (this.hasPlayed && !this.s.completeFired) this.push("abandon", t);
     this.closeRange();
-    this.flush(true);
+    this.flush(true, true);
   }
 
   flush(beacon = false, heartbeat = false) {
@@ -155,10 +161,10 @@ export class VslTracker {
     this.dirtyRanges.clear();
     if (this.openRange) this.dirtyRanges.set(this.openRange.id, { ...this.openRange });
     if (beacon && navigator.sendBeacon) {
-      navigator.sendBeacon(this.endpoint, new Blob([payload], { type: "text/plain" }));
-    } else {
-      fetch(this.endpoint, { method: "POST", body: payload, keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(() => {});
+      const sent = navigator.sendBeacon(this.endpoint, new Blob([payload], { type: "text/plain" }));
+      if (sent) return;
     }
+    fetch(this.endpoint, { method: "POST", body: payload, keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(() => {});
   }
 
   destroy() { if (this.timer) clearInterval(this.timer); this.flush(); }
