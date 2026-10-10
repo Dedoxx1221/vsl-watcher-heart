@@ -3,6 +3,7 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { VslPlayer } from "@/components/VslPlayer";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Radio, MapPin, Globe, ChartNoAxesColumn } from "lucide-react";
@@ -146,7 +147,7 @@ function Dashboard() {
         </details>
       </section>
 
-      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} live={live} />}
+      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} video={video ? { id: video.id, video_url: video.video_url, thumbnail_url: video.thumbnail_url ?? null, checkout_url: video.checkout_url ?? null, offer_time_seconds: video.offer_time_seconds ?? null, player_settings: video.player_settings } : null} live={live} />}
     </div>
   );
 }
@@ -193,7 +194,7 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
   );
 }
 
-function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null; videoUrl: string; live?: { viewers?: { is_playing: boolean; position: number }[] } | undefined }) {
+function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; video: { id: string; video_url: string; thumbnail_url: string | null; checkout_url: string | null; offer_time_seconds: number | null; player_settings?: unknown } | null; live?: { viewers?: { is_playing: boolean; position: number }[] } | undefined }) {
   const vref = useRef<HTMLVideoElement>(null);
   const [cursor, setCursor] = useState(0);
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
@@ -298,19 +299,14 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
           <p className="text-xs text-muted-foreground">Somente reprodução real — avanços pela barra não contam. Intervalo: {a.bucket_size}s · duração {fmtTime(a.duration)}</p>
         </div>
         <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-        <div className="space-y-2">
-          <video
-            ref={vref}
-            src={videoUrl}
-            controls
-            preload="metadata"
-            playsInline
-            className="aspect-[9/16] w-full rounded-md bg-background object-contain"
-            onTimeUpdate={(e) => setCursor(e.currentTarget.currentTime)}
-          />
-          <div className="rounded-md bg-secondary p-2 text-center">
-            <p className="num text-sm">{fmtTime(cursor)}</p>
-            <p className="num text-lg font-semibold text-primary">{(series.reduce((r, p) => (p.t <= cursor ? p.r : r), series[0]?.r ?? 0)).toFixed(1)}%</p>
+        <div className="space-y-3">
+          <div className="overflow-hidden rounded-2xl border border-border/70 bg-black shadow-xl">
+            {video ? <VslPlayer video={video} preview /> : <div className="aspect-[9/16] w-full" />}
+          </div>
+          <div className="rounded-xl border border-border/70 bg-card p-3 text-center shadow-sm">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Posição selecionada</p>
+            <p className="num mt-1 text-sm">{fmtTime(cursor)}</p>
+            <p className="num text-2xl font-semibold text-primary">{(series.reduce((r, p) => (p.t <= cursor ? p.r : r), series[0]?.r ?? 0)).toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground">ainda assistindo neste ponto</p>
           </div>
         </div>
