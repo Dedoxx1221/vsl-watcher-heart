@@ -233,6 +233,30 @@ function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; vide
   }, [a]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
+  // Posição ao vivo: acompanha somente espectadores cuja reprodução está ativa.
+  // Se todos pausarem ou saírem, o marcador para no último ponto recebido.
+  const livePlaying = (live?.viewers ?? []).filter(v => v.is_playing);
+  const livePosition = livePlaying.length
+    ? livePlaying.reduce((sum, v) => sum + Number(v.position || 0), 0) / livePlaying.length
+    : null;
+  const [liveCursor, setLiveCursor] = useState<number | null>(null);
+  const [liveCursorRunning, setLiveCursorRunning] = useState(false);
+  const livePositionRef = useRef<number | null>(null);
+  const liveUpdatedAtRef = useRef<number>(Date.now());
+
+  // Interpola suavemente entre atualizações do servidor; a animação congela em pausa/saída.
+  useMemo(() => {
+    if (livePosition != null) {
+      livePositionRef.current = livePosition;
+      liveUpdatedAtRef.current = Date.now();
+      setLiveCursor(livePosition);
+      setLiveCursorRunning(true);
+    } else {
+      setLiveCursorRunning(false);
+    }
+    return null;
+  }, [livePosition, livePlaying.length]);
+
   const changes = useMemo(() => {
     const step = Math.max(1, Math.round(series.length / 60)); // ~60 windows
     const w: { from: number; to: number; d: number }[] = [];
@@ -320,12 +344,13 @@ function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; vide
               {changes.drops.slice(0, 3).map((d) => <ReferenceLine key={d.to} x={d.to} stroke="var(--destructive)" strokeDasharray="2 4" />)}
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
+              {liveCursor != null && <ReferenceLine x={liveCursor} stroke="var(--chart-3)" strokeWidth={2} strokeDasharray={liveCursorRunning ? undefined : "4 4"} label={{ value: liveCursorRunning ? "Ao vivo" : "Pausado", fill: "var(--chart-3)", fontSize: 11, position: "insideTopLeft" }} />}
               <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Clique em qualquer ponto do gráfico para ver o trecho do vídeo naquele momento.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Linha cinza: posição do player de análise. Linha colorida: posição média dos espectadores que estão assistindo agora; ela para quando todos pausam ou saem e volta a andar quando retomam.</p>
         <div className="mt-4 grid grid-cols-5 gap-2">
           {["10", "25", "50", "75", "100"].map((k) => (
             <div key={k} className="rounded-md bg-secondary p-3 text-center">
