@@ -174,9 +174,10 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           muted
           loop={!preview && cfg.autoplay}
           playsInline
-          preload={!preview && (cfg.turbo || cfg.autoplay) ? "auto" : "metadata"}
+          preload="metadata"
+          fetchPriority="high"
           crossOrigin={cfg.captions && cfg.captionsUrl ? "anonymous" : undefined}
-          poster={(!cfg.autoplay || (preview && !cfg.autoplayImage)) ? video.thumbnail_url ?? undefined : undefined}
+          poster={video.thumbnail_url ?? undefined}
           disablePictureInPicture
           controlsList="nodownload noplaybackrate noremoteplayback"
           className={"block h-auto w-full bg-background object-contain " + (cfg.aspect === "9:16" ? "aspect-[9/16]" : "aspect-video")}
