@@ -220,6 +220,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           <div role="button" tabIndex={0} aria-label="Toque para ouvir" onClick={() => { if (!preview) start(0); }} onKeyDown={(e) => { if (!preview && (e.key === "Enter" || e.key === " ")) start(0); }} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
+              <>
               <img
                 src={cfg.autoplayImage || video.thumbnail_url!}
                 alt="Toque para ouvir"
@@ -254,7 +255,6 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                 <button
                   key={`${sx}-${sy}`}
                   type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                   aria-label="Redimensionar imagem"
                   title="Arraste a alça do canto para aumentar ou diminuir, como no Paint"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
@@ -276,13 +276,14 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   style={{ left: `${cfg.autoplayImageX ?? 50}%`, top: `${cfg.autoplayImageY ?? 50}%`, transform: `translate(${sx * (cfg.autoplayImageSize ?? 70) / 2}%, ${sy * (cfg.autoplayImageSize ?? 70) / 2}%)` }}
                 />
               ))))}
+              </>
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
                 <svg viewBox="0 0 24 24" className="ml-1 h-8 w-8 fill-current"><path d="M8 5v14l11-7z" /></svg>
               </span>
             )}
-          </button>
+          </div>
         )}
         {cfg.showBar && <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[3]">
           <div className="w-full overflow-hidden bg-player-track" style={{ height: cfg.barHeight }}>
