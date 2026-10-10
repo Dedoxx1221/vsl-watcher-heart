@@ -164,7 +164,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   return (
     <div ref={wrap} style={style} className={"relative box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent " + (cfg.aspect === "9:16" ? "max-w-[420px]" : "")}>
       {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign, backgroundColor: "transparent" }}>
+        <div className="relative z-20 box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign, backgroundColor: "transparent" }}>
           {cfg.headlineUseImage ? (
             <img src={cfg.headlineImageUrl} alt="Headline" loading="eager" className="block h-auto max-w-full" style={{ maxHeight: "40vh", objectFit: "contain", boxSizing: "border-box", marginLeft: cfg.headlineAlign === "left" ? 0 : "auto", marginRight: cfg.headlineAlign === "right" ? 0 : "auto" }} />
           ) : (() => {
