@@ -10,11 +10,14 @@ export type PlayerSettings = {
   fastBar: boolean;
   barColor: string;
   barHeight: number;
+  barAccel: number;
   // Smart autoplay
   autoplay: boolean;
   autoplayText: string;
+  autoplayImage: string;
   // Turbo
   turbo: boolean;
+  turboSpeed: number;
   // Headlines
   headline: boolean;
   headlineText: string;
@@ -62,9 +65,12 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   fastBar: true,
   barColor: "#e62117",
   barHeight: 5,
+  barAccel: 32,
   autoplay: true,
   autoplayText: "",
+  autoplayImage: "",
   turbo: false,
+  turboSpeed: 1.1,
   headline: false,
   headlineText: "Assista até o final — o melhor vem depois",
   headlineColor: "#ffffff",

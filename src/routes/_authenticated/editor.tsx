@@ -96,7 +96,7 @@ function Editor() {
       </div>
     </div>
   );
-  const Text = ({ k, label, placeholder }: { k: "pauseText" | "resumeText" | "ctaText" | "autoplayText" | "headlineText" | "trafficParam" | "trafficRedirect" | "thumbPauseUrl" | "thumbEndUrl" | "fbPixel" | "ga4" | "captionsUrl"; label: string; placeholder?: string }) => (
+  const Text = ({ k, label, placeholder }: { k: "pauseText" | "resumeText" | "ctaText" | "autoplayText" | "autoplayImage" | "headlineText" | "trafficParam" | "trafficRedirect" | "thumbPauseUrl" | "thumbEndUrl" | "fbPixel" | "ga4" | "captionsUrl"; label: string; placeholder?: string }) => (
     <div className="space-y-1.5 py-2"><Label>{label}</Label><Input value={s[k]} placeholder={placeholder} onChange={(e) => set(k, e.target.value)} /></div>
   );
   const Section = ({ id, title, toggle, badge, children }: { id: string; title: string; toggle?: BoolKey; badge?: string; children: ReactNode }) => {
@@ -162,17 +162,22 @@ function Editor() {
           <Section id="bar" title="Progresso Inteligente" toggle="showBar">
             <Toggle k="fastBar" label="Barra acelerada" hint="Anda rápido no início e desacelera — dá sensação de vídeo curto" />
             <Color k="barColor" label="Cor da barra" />
+            <div className="flex items-center justify-between gap-4 py-2"><div><p className="text-sm">Aceleração</p><p className="text-xs text-muted-foreground">1 = linear · maior = mais rápido no início (padrão 32)</p></div>
+              <Input type="number" min={1} max={100} value={s.barAccel} onChange={(e) => set("barAccel", Math.min(100, Math.max(1, Number(e.target.value) || 1)))} className="num h-8 w-20" /></div>
             <div className="flex items-center justify-between py-2"><p className="text-sm">Altura (px)</p>
               <Input type="number" min={2} max={20} value={s.barHeight} onChange={(e) => set("barHeight", Number(e.target.value) || 5)} className="num h-8 w-20" /></div>
           </Section>
 
           <Section id="autoplay" title="Smart Autoplay™" toggle="autoplay">
             <p className="py-2 text-xs text-muted-foreground">O vídeo começa mudo em loop; ao tocar, reinicia do zero com som. Desligado, mostra a thumbnail com botão de play.</p>
+            <Text k="autoplayImage" label="Imagem ou GIF sobre o vídeo (URL)" placeholder="https://…/imagem.gif — vazio usa a thumbnail" />
             <Text k="autoplayText" label="Mensagem sobre o vídeo (opcional)" placeholder="Seu vídeo já começou — toque para ouvir" />
           </Section>
 
           <Section id="turbo" title="Turbo" toggle="turbo">
-            <p className="py-2 text-xs text-muted-foreground">Pré-carrega o vídeo inteiro assim que a página abre, para começar mais rápido.</p>
+            <p className="py-2 text-xs text-muted-foreground">Pré-carrega o vídeo inteiro assim que a página abre, para começar mais rápido, e permite acelerar a velocidade do vídeo.</p>
+            <div className="flex items-center justify-between gap-4 py-2"><div><p className="text-sm">Velocidade</p><p className="text-xs text-muted-foreground">Ex.: 1.1 ou 1.2 (1 = normal)</p></div>
+              <Input type="number" step={0.05} min={0.5} max={2} value={s.turboSpeed} onChange={(e) => set("turboSpeed", Math.min(2, Math.max(0.5, Number(e.target.value) || 1)))} className="num h-8 w-20" /></div>
           </Section>
 
           <Section id="headline" title="Headlines" toggle="headline">
