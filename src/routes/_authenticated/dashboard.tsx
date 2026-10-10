@@ -138,7 +138,7 @@ function Dashboard() {
             <span className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground group-open:bg-secondary">Ver detalhes <span className="ml-1 inline-block transition-transform group-open:rotate-180">⌄</span></span>
           </summary>
           <div className="grid gap-5 border-t border-border p-4 md:grid-cols-2 xl:grid-cols-4">
-            <div><h3 className="mb-3 text-sm font-semibold">Países</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.country || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem localização disponível." /></div>
+            <div><h3 className="mb-3 text-sm font-semibold">Países</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => countryDisplayName(v.country))} total={live?.active_count ?? 0} empty="Sem localização disponível." /></div>
             <div><h3 className="mb-3 text-sm font-semibold">Origem / UTM</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => { const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / "); if (utm) return utm; if (!v.referrer) return "Direto / desconhecido"; try { return new URL(v.referrer).hostname; } catch { return v.referrer; } })} total={live?.active_count ?? 0} empty="Sem origem identificada." /></div>
             <div><h3 className="mb-3 text-sm font-semibold">Navegadores</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de navegador." /></div>
             <div><h3 className="mb-3 text-sm font-semibold">Dispositivos</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de dispositivo." /></div>
@@ -152,6 +152,17 @@ function Dashboard() {
 }
 
 type LiveBreakdownItem = { label: string; count: number };
+
+function countryDisplayName(code: string | null | undefined): string {
+  const value = (code ?? "").trim();
+  if (!value) return "Desconhecido";
+  if (!/^[a-z]{2}$/i.test(value)) return value;
+  try {
+    return new Intl.DisplayNames(["pt-BR"], { type: "region" }).of(value.toUpperCase()) ?? value.toUpperCase();
+  } catch {
+    return value.toUpperCase();
+  }
+}
 
 function aggregateLive<T extends { }>(viewers: T[], getLabel: (viewer: T) => string): LiveBreakdownItem[] {
   const counts = new Map<string, number>();
