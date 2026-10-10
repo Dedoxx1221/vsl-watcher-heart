@@ -30,6 +30,46 @@ export const Route = createFileRoute("/_authenticated/editor")({
   component: Editor,
 });
 
+function ImageUrlPreview({ url, title, aspect }: { url: string; title: string; aspect: "9:16" | "16:9" }) {
+  const [status, setStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const src = url.trim();
+
+  useEffect(() => {
+    setStatus(src ? "loading" : "idle");
+  }, [src]);
+
+  return (
+    <div className="my-2 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+      <p className="text-xs font-medium text-muted-foreground">{title}</p>
+      {!src ? (
+        <div className="flex items-center justify-center rounded-md border border-dashed border-border bg-background/50 px-3 py-8 text-center text-xs text-muted-foreground">
+          Cole uma URL direta de imagem para ver a prévia.
+        </div>
+      ) : (
+        <div className="flex w-full items-center justify-center overflow-hidden rounded-md bg-black" style={{ aspectRatio: aspect === "9:16" ? "9 / 16" : "16 / 9", maxHeight: 280 }}>
+          <img
+            key={src}
+            src={src}
+            alt={title}
+            loading="eager"
+            referrerPolicy="no-referrer"
+            onLoad={() => setStatus("loaded")}
+            onError={() => setStatus("error")}
+            className="h-full w-full object-contain"
+            style={{ display: status === "error" ? "none" : "block" }}
+          />
+          {status === "loading" && <span className="absolute text-xs text-white/80">Carregando prévia…</span>}
+          {status === "error" && (
+            <div className="px-4 py-6 text-center text-xs text-white/90">
+              Não foi possível carregar esta imagem. Use o link direto do arquivo (.jpg, .png, .webp ou .gif), não a página de compartilhamento.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function parseTime(s: string): number | null {
   if (!s.trim()) return null;
   const parts = s.split(":").map(Number);
@@ -250,26 +290,10 @@ function Editor() {
           </Section>
 
           <Section id="thumb" title="Imagem ao pausar ou terminar" toggle="thumbSniper">
-            <Text k="thumbPauseUrl" label="Imagem ao pausar (link)" placeholder="https://..." />
-            {s.thumbPauseUrl.trim() ? (
-              <div className="my-2 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-                <p className="text-xs font-medium text-muted-foreground">Prévia da imagem de pausa</p>
-                <div className="overflow-hidden rounded-md bg-black" style={{ aspectRatio: s.aspect === "9:16" ? "9 / 16" : "16 / 9", maxHeight: 280 }}>
-                  <img src={s.thumbPauseUrl.trim()} alt="Prévia da imagem ao pausar" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} onLoad={(e) => { e.currentTarget.style.display = "block"; }} />
-                </div>
-              </div>
-            ) : (
-              <p className="pb-2 text-xs text-muted-foreground">A prévia da imagem de pausa aparecerá aqui quando você informar o link.</p>
-            )}
-            <Text k="thumbEndUrl" label="Imagem ao terminar (link)" placeholder="https://..." />
-            {s.thumbEndUrl.trim() && (
-              <div className="my-2 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-                <p className="text-xs font-medium text-muted-foreground">Prévia da imagem final</p>
-                <div className="overflow-hidden rounded-md bg-black" style={{ aspectRatio: s.aspect === "9:16" ? "9 / 16" : "16 / 9", maxHeight: 280 }}>
-                  <img src={s.thumbEndUrl.trim()} alt="Prévia da imagem ao terminar" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} onLoad={(e) => { e.currentTarget.style.display = "block"; }} />
-                </div>
-              </div>
-            )}
+            <Text k="thumbPauseUrl" label="Imagem ao pausar (URL direta da imagem)" placeholder="https://site.com/imagem.jpg" />
+            <ImageUrlPreview url={s.thumbPauseUrl} title="Prévia da imagem de pausa" aspect={s.aspect} />
+            <Text k="thumbEndUrl" label="Imagem ao terminar (URL direta da imagem)" placeholder="https://site.com/imagem.jpg" />
+            <ImageUrlPreview url={s.thumbEndUrl} title="Prévia da imagem final" aspect={s.aspect} />
           </Section>
 
           <Section id="resume" title="Retomar vídeo" toggle="resumePrompt">
