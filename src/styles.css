@@ -129,3 +129,65 @@
 }
 
 @utility player-accent { background: var(--cta-bg); color: var(--cta-fg); }
+
+
+/* Vexora visual refresh */
+:root {
+  --radius: 0.85rem;
+  --background: oklch(0.135 0.018 258);
+  --foreground: oklch(0.95 0.012 250);
+  --card: oklch(0.185 0.022 258);
+  --card-foreground: oklch(0.95 0.012 250);
+  --popover: oklch(0.2 0.022 258);
+  --popover-foreground: oklch(0.95 0.012 250);
+  --primary: oklch(0.79 0.17 150);
+  --primary-foreground: oklch(0.16 0.025 155);
+  --secondary: oklch(0.235 0.022 258);
+  --secondary-foreground: oklch(0.92 0.012 250);
+  --muted: oklch(0.22 0.02 258);
+  --muted-foreground: oklch(0.68 0.02 250);
+  --accent: oklch(0.255 0.03 258);
+  --accent-foreground: oklch(0.97 0.01 250);
+  --border: oklch(0.31 0.025 258 / 78%);
+  --input: oklch(0.27 0.025 258);
+  --ring: oklch(0.79 0.17 150);
+  --sidebar: oklch(0.15 0.022 258);
+  --sidebar-foreground: oklch(0.91 0.012 250);
+  --sidebar-primary: oklch(0.79 0.17 150);
+  --sidebar-primary-foreground: oklch(0.16 0.025 155);
+  --sidebar-accent: oklch(0.235 0.03 258);
+  --sidebar-accent-foreground: oklch(0.97 0.01 250);
+  --sidebar-border: oklch(0.29 0.025 258);
+  --sidebar-ring: oklch(0.79 0.17 150);
+}
+html { color-scheme: dark; }
+body {
+  background-image:
+    radial-gradient(ellipse at 14% -12%, oklch(0.3 0.07 250 / 20%), transparent 38rem),
+    radial-gradient(ellipse at 100% 0%, oklch(0.35 0.08 155 / 7%), transparent 32rem);
+  background-attachment: fixed;
+}
+::selection { background: oklch(0.79 0.17 150 / 28%); color: var(--foreground); }
+:where(input:not([type="color"]), textarea, select) {
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+:where(input:not([type="color"]), textarea, select):focus-visible {
+  outline: none;
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 3px oklch(0.79 0.17 150 / 13%);
+}
+:where(button, a) { -webkit-tap-highlight-color: transparent; }
+:where(button, a):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.panel {
+  background: linear-gradient(145deg, oklch(0.195 0.024 258 / 98%), oklch(0.17 0.02 258 / 98%));
+  border-color: oklch(0.34 0.025 258 / 70%);
+  box-shadow: 0 12px 34px oklch(0.07 0.02 258 / 18%), inset 0 1px 0 oklch(1 0 0 / 2%);
+}
+h1 { letter-spacing: -0.045em !important; }
+h2, h3 { letter-spacing: -0.03em !important; }
+img { color: var(--muted-foreground); }
+@media (prefers-reduced-motion: no-preference) {
+  .panel, [class*="rounded-xl border bg-card"] {
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+}
