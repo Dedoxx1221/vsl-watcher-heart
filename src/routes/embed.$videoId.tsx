@@ -33,11 +33,14 @@ function Embed() {
       bodyOverflow: body.style.overflow,
       bodyMargin: body.style.margin,
     };
-    html.style.background = "transparent";
-    html.style.backgroundImage = "none";
+    // Force the embed document itself to be transparent, independent of the Vexora app theme.
+    html.style.setProperty("background", "transparent", "important");
+    html.style.setProperty("background-color", "transparent", "important");
+    html.style.setProperty("background-image", "none", "important");
     html.style.overflow = "hidden";
-    body.style.background = "transparent";
-    body.style.backgroundImage = "none";
+    body.style.setProperty("background", "transparent", "important");
+    body.style.setProperty("background-color", "transparent", "important");
+    body.style.setProperty("background-image", "none", "important");
     body.style.overflow = "hidden";
     body.style.margin = "0";
     return () => {
@@ -66,11 +69,15 @@ function Embed() {
   return (
     <>
       <style>{`
-        html, body, #root {
+        :root, html, body, #root, body > #root {
           background: transparent !important;
           background-color: transparent !important;
           background-image: none !important;
           box-shadow: none !important;
+        }
+        html, body, #root, body > #root {
+          background-color: rgba(0, 0, 0, 0) !important;
+          background-image: none !important;
         }
         html, body {
           margin: 0 !important;
