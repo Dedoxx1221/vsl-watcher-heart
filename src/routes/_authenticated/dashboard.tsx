@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -372,7 +372,7 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
               <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
-              {liveMarkers.length > 0 && <Scatter xAxisId={0} yAxisId={0} name="Espectadores ao vivo" data={liveMarkers} dataKey="y" fill="#22c55e" shape={(props: { cx?: number; cy?: number }) => props.cx == null || props.cy == null ? <g /> : <circle cx={props.cx} cy={props.cy} r={6} fill="#22c55e" stroke="#ffffff" strokeWidth={2} /> } isAnimationActive={false} />}
+              {liveMarkers.map((marker) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={7} fill="#22c55e" stroke="#ffffff" strokeWidth={2} ifOverflow="extendDomain" />)}
             </AreaChart>
           </ResponsiveContainer>
         </div>
