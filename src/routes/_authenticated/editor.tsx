@@ -18,9 +18,9 @@ export const Route = createFileRoute("/_authenticated/editor")({
   validateSearch: (search: Record<string, unknown>) => ({ v: typeof search.v === "string" ? search.v : undefined }),
   head: () => ({
     meta: [
-      { title: "Editor do player — Retina" },
+      { title: "Editor do player — Vexora" },
       { name: "description", content: "Configure autoplay, progresso, headlines, ganchos, pixels, legendas e botões da sua VSL." },
-      { property: "og:title", content: "Editor do player — Retina" },
+      { property: "og:title", content: "Editor do player — Vexora" },
       { property: "og:description", content: "Configure autoplay, progresso, headlines, ganchos, pixels, legendas e botões da sua VSL." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
