@@ -518,11 +518,11 @@ function Editor() {
                     </div>
                     {headlineMode === "visual" ? (
                       <div className="space-y-2">
-                        <div className="flex flex-wrap gap-1 rounded-md border border-[#3a3a3a] p-2">
-                          <Button type="button" size="icon" variant={s.headlineBold ? "default" : "ghost"} title="Negrito" onClick={() => applyHeadlineStyle({ bold: !s.headlineBold })} className="h-8 w-8">B</Button>
-                          <Button type="button" size="icon" variant={s.headlineItalic ? "default" : "ghost"} title="Itálico" onClick={() => applyHeadlineStyle({ italic: !s.headlineItalic })} className="h-8 w-8 italic">I</Button>
-                          <Button type="button" size="icon" variant={s.headlineUnderline ? "default" : "ghost"} title="Sublinhado" onClick={() => applyHeadlineStyle({ underline: !s.headlineUnderline })} className="h-8 w-8 underline">U</Button>
-                          <Button type="button" size="icon" variant="ghost" title="Tachado" onClick={() => applyHeadlineStyle({ strike: true })} className="h-8 w-8 line-through">S</Button>
+                        <div className="flex flex-wrap gap-1 rounded-md border border-[#343b4a] bg-[#151923] p-2">
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("bold")} title="Negrito" onClick={() => toggleHeadlineStyle("bold")} className="h-8 w-8">B</Button>
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("italic")} title="Itálico" onClick={() => toggleHeadlineStyle("italic")} className="h-8 w-8 italic">I</Button>
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("underline")} title="Sublinhado" onClick={() => toggleHeadlineStyle("underline")} className="h-8 w-8 underline">U</Button>
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("strike")} title="Tachado" onClick={() => toggleHeadlineStyle("strike")} className="h-8 w-8 line-through">S</Button>
                           <label title="Cor do texto" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-white/10">A<input type="color" value={headlineWordColor} onChange={(e) => { setHeadlineWordColor(e.target.value); applyHeadlineStyle({ color: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
                           <label title="Destaque de fundo" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-white/10">▰<input type="color" value={headlineBackground} onChange={(e) => { setHeadlineBackground(e.target.value); applyHeadlineStyle({ backgroundColor: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
                           <span className="mx-1 h-8 w-px bg-[#3a3a3a]" />
