@@ -165,7 +165,7 @@ function Dashboard() {
         </div>
       </section>
 
-      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} />}
+      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} live={live} />}
     </div>
   );
 }
@@ -201,7 +201,7 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
   );
 }
 
-function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; videoUrl: string }) {
+function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null; videoUrl: string; live?: { viewers?: { is_playing: boolean; position: number }[] } | undefined }) {
   const vref = useRef<HTMLVideoElement>(null);
   const [cursor, setCursor] = useState(0);
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
