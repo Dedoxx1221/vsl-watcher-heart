@@ -263,6 +263,7 @@ function Editor() {
               key={`${video.id}-${previewCta}-${s.autoplay}`}
               video={{ ...video, checkout_url: checkout || video.checkout_url, offer_time_seconds: parseTime(offer) }}
               settings={{ ...s, ctaAlways: previewCta }}
+              onAutoplayImageTransform={({ x, y, size }) => setS((prev) => ({ ...prev, autoplayImageX: Math.round(x * 10) / 10, autoplayImageY: Math.round(y * 10) / 10, autoplayImageSize: Math.round(size * 10) / 10 }))}
               preview
             />
             <p className="mt-2 text-xs text-muted-foreground">A prévia não gera métricas nem dispara pixels.</p>
