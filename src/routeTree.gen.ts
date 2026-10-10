@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedVideosRouteImport } from './routes/_authenticated/videos'
+import { Route as ApiDiagnosisRouteImport } from './routes/api/diagnosis'
 import { Route as EmbedVideoIdRouteImport } from './routes/embed.$videoId'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 
@@ -41,6 +42,11 @@ const AuthenticatedVideosRoute = AuthenticatedVideosRouteImport.update({
   path: '/videos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiDiagnosisRoute = ApiDiagnosisRouteImport.update({
+  id: '/api/diagnosis',
+  path: '/api/diagnosis',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbedVideoIdRoute = EmbedVideoIdRouteImport.update({
   id: '/embed/$videoId',
   path: '/embed/$videoId',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/videos': typeof AuthenticatedVideosRoute
+  '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -65,6 +72,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/videos': typeof AuthenticatedVideosRoute
+  '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/videos': typeof AuthenticatedVideosRoute
+  '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/videos'
+    | '/api/diagnosis'
     | '/embed/$videoId'
     | '/api/public/track'
   fileRoutesByTo: FileRoutesByTo
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/videos'
+    | '/api/diagnosis'
     | '/embed/$videoId'
     | '/api/public/track'
   id:
@@ -102,6 +113,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/videos'
+    | '/api/diagnosis'
     | '/embed/$videoId'
     | '/api/public/track'
   fileRoutesById: FileRoutesById
@@ -110,6 +122,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiDiagnosisRoute: typeof ApiDiagnosisRoute
   EmbedVideoIdRoute: typeof EmbedVideoIdRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVideosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/diagnosis': {
+      id: '/api/diagnosis'
+      path: '/api/diagnosis'
+      fullPath: '/api/diagnosis'
+      preLoaderRoute: typeof ApiDiagnosisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embed/$videoId': {
       id: '/embed/$videoId'
       path: '/embed/$videoId'
@@ -185,6 +205,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiDiagnosisRoute: ApiDiagnosisRoute,
   EmbedVideoIdRoute: EmbedVideoIdRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
 }
