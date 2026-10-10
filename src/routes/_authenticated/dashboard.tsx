@@ -100,7 +100,8 @@ function Body({ a, offer }: { a: Analytics; offer: number | null }) {
     const step = Math.max(1, Math.round(series.length / 60)); // ~60 windows
     const w: { from: number; to: number; d: number }[] = [];
     for (let i = step; i < series.length; i += step) {
-      w.push({ from: series[i - step].t, to: series[i].t, d: series[i].r - series[i - step].r });
+      const a0 = series[i - step]!, a1 = series[i]!;
+      w.push({ from: a0.t, to: a1.t, d: a1.r - a0.r });
     }
     return {
       drops: [...w].filter((x) => x.d < 0).sort((x, y) => x.d - y.d).slice(0, 5),
@@ -210,7 +211,7 @@ function Body({ a, offer }: { a: Analytics; offer: number | null }) {
                 <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-secondary">
                   <div className="h-full rounded-full bg-primary" style={{ width: `${pct(f.n, a.plays)}%`, opacity: 1 - i * 0.25 }} />
                 </div>
-                {i > 0 && <p className="mt-1 text-xs text-muted-foreground">{pct(f.n, funnel[i - 1].n).toFixed(1)}% da etapa anterior</p>}
+                {i > 0 && <p className="mt-1 text-xs text-muted-foreground">{pct(f.n, funnel[i - 1]!.n).toFixed(1)}% da etapa anterior</p>}
               </div>
             ))}
           </div>
