@@ -320,7 +320,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
         </div>}
       </div>
       {cfg.cta && showCta && checkoutHref && (
-        <div className="px-3 py-[22px] text-center">
+        <div className="overflow-hidden px-3 py-3 text-center">
           <a
             href={checkoutHref}
             target="_top"
