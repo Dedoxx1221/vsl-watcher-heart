@@ -66,36 +66,16 @@ function Editor() {
   const set = <K extends keyof PlayerSettings>(k: K, v: PlayerSettings[K]) => setS((p) => ({ ...p, [k]: v }));
 
   async function save() {
-    if (!video || saving) return;
+    if (!video) return;
     setSaving(true);
-    try {
-      const { ctaAlways: _drop, ...clean } = s;
-      const { data, error } = await supabase.from("videos").update({
-        player_settings: clean, offer_time_seconds: parseTime(offer), checkout_url: checkout || null,
-      }).eq("id", video.id).select("id").maybeSingle();
-
-      if (error) {
-        console.error("[Vexora] Falha ao salvar configurações do player:", error);
-        toast.error("Não foi possível atualizar", { description: error.message });
-        return;
-      }
-      if (!data) {
-        console.error("[Vexora] Nenhum vídeo foi atualizado. Verifique a sessão e as políticas de acesso do Supabase.");
-        toast.error("Não foi possível atualizar", {
-          description: "Nenhum registro foi alterado. Verifique se sua sessão está ativa e se o Supabase permite atualizar este vídeo.",
-        });
-        return;
-      }
-
-      await qc.invalidateQueries({ queryKey: ["videos"] });
-      toast.success("Player salvo — as mudanças já valem na sua página.");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error("[Vexora] Erro inesperado ao salvar:", err);
-      toast.error("Não foi possível atualizar", { description: message });
-    } finally {
-      setSaving(false);
-    }
+    const { ctaAlways: _drop, ...clean } = s;
+    const { error } = await supabase.from("videos").update({
+      player_settings: clean, offer_time_seconds: parseTime(offer), checkout_url: checkout || null,
+    }).eq("id", video.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Player salvo — as mudanças já valem na sua página.");
+    qc.invalidateQueries({ queryKey: ["videos"] });
   }
 
   function loadFrom(id: string) {
