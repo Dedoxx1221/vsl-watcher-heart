@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import { BarChart3, Film, LogOut, Sparkles, SlidersHorizontal, ArrowUpRight } from "lucide-react";
+import { BarChart3, Film, LogOut, SlidersHorizontal, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -33,12 +33,10 @@ function Layout() {
         <nav className="flex gap-1.5 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
           <Link preload="intent" to="/videos" className={item} activeProps={active}><Film className="h-[18px] w-[18px] shrink-0" />Biblioteca</Link>
           <Link preload="intent" to="/dashboard" className={item} activeProps={active}><BarChart3 className="h-[18px] w-[18px] shrink-0" />Analytics</Link>
-          <Link preload="intent" to="/ai" className={item} activeProps={active}><Sparkles className="h-[18px] w-[18px] shrink-0" />Diagnóstico IA</Link>
           <Link preload="intent" to="/editor" className={item} activeProps={active}><SlidersHorizontal className="h-[18px] w-[18px] shrink-0" />Editor do player</Link>
         </nav>
 
         <div className="mt-5 hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent p-4 md:block">
-          <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary"><Sparkles className="h-4 w-4" /></div>
           <p className="text-sm font-semibold text-foreground">Transforme dados em decisões</p>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">Acompanhe a retenção e encontre oportunidades para melhorar suas VSLs.</p>
           <Link preload="intent" to="/dashboard" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Ver analytics <ArrowUpRight className="h-3.5 w-3.5" /></Link>
