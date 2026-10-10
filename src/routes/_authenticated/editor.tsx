@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ChevronDown, Copy, Download, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime } from "@/lib/videos";
-import { parseSettings, DEFAULT_SETTINGS, type PlayerSettings } from "@/lib/player-settings";
+import { parseSettings, DEFAULT_SETTINGS, type PlayerSettings, type HeadlineSegment } from "@/lib/player-settings";
 import { VslPlayer } from "@/components/VslPlayer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,6 +91,9 @@ function Editor() {
   const [saving, setSaving] = useState(false);
   const [previewCta, setPreviewCta] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
+  const [headlineSelection, setHeadlineSelection] = useState({ start: 0, end: 0 });
+  const [headlineWordColor, setHeadlineWordColor] = useState("#ffdf00");
+  const [headlineWordSize, setHeadlineWordSize] = useState(32);
 
   useEffect(() => {
     if (search.v && videos.some((v) => v.id === search.v)) setVideoId(search.v);
@@ -104,6 +107,39 @@ function Editor() {
   }, [video]);
 
   const set = <K extends keyof PlayerSettings>(k: K, v: PlayerSettings[K]) => setS((p) => ({ ...p, [k]: v }));
+
+  function applyHeadlineStyle(patch: Partial<HeadlineSegment>) {
+    const text = s.headlineText;
+    if (!text) return;
+    let start = Math.max(0, Math.min(text.length, Math.min(headlineSelection.start, headlineSelection.end)));
+    let end = Math.max(0, Math.min(text.length, Math.max(headlineSelection.start, headlineSelection.end)));
+    if (start === end) {
+      start = Math.min(start, text.length);
+      while (start > 0 && !/\\s/.test(text[start - 1])) start--;
+      end = Math.max(start, Math.min(text.length, headlineSelection.start));
+      while (end < text.length && !/\\s/.test(text[end])) end++;
+      if (start === end) return;
+    }
+    const source: HeadlineSegment[] = s.headlineSegments.length && s.headlineSegments.map((part) => part.text).join("") === text
+      ? s.headlineSegments
+      : [{ text }];
+    const next: HeadlineSegment[] = [];
+    let offset = 0;
+    for (const part of source) {
+      const partStart = offset;
+      const partEnd = offset + part.text.length;
+      offset = partEnd;
+      const cuts = [...new Set([partStart, Math.max(partStart, Math.min(partEnd, start)), Math.max(partStart, Math.min(partEnd, end)), partEnd])].sort((a, b) => a - b);
+      for (let i = 0; i < cuts.length - 1; i++) {
+        const a = cuts[i];
+        const b = cuts[i + 1];
+        if (b <= a) continue;
+        const selected = a < end && b > start;
+        next.push({ ...part, ...(selected ? patch : {}), text: text.slice(a, b) });
+      }
+    }
+    set("headlineSegments", next);
+  }
 
   async function save() {
     if (!video || saving) return;
@@ -295,9 +331,44 @@ function Editor() {
               <Input type="number" step={0.05} min={0.5} max={2} value={s.turboSpeed} onChange={(e) => set("turboSpeed", Math.min(2, Math.max(0.5, Number(e.target.value) || 1)))} className="num h-8 w-20" /></div>
           </Section>
 
-          <Section id="headline" title="Texto acima do vídeo" toggle="headline">
-            <Text k="headlineText" label="Texto acima do vídeo" />
-            <Color k="headlineColor" label="Cor do texto" />
+          <Section id="headline" title="Headline acima do vídeo" toggle="headline">
+            <div className="space-y-2 py-3">
+              <Label>Texto da headline</Label>
+              <textarea
+                value={s.headlineText}
+                onChange={(e) => { set("headlineText", e.target.value); set("headlineSegments", []); }}
+                onSelect={(e) => setHeadlineSelection({ start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd })}
+                onClick={(e) => setHeadlineSelection({ start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd })}
+                rows={3}
+                placeholder="Digite sua headline. Selecione uma palavra ou trecho para formatar individualmente."
+                className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <p className="text-xs text-muted-foreground">Para formatar palavras diferentes, selecione o trecho no campo acima e aplique a cor, tamanho ou estilo desejado.</p>
+            </div>
+            <Color k="headlineColor" label="Cor padrão do texto" />
+            <div className="grid grid-cols-2 gap-3 py-2">
+              <div className="space-y-1.5"><Label>Alinhamento</Label><select value={s.headlineAlign} onChange={(e) => set("headlineAlign", e.target.value as PlayerSettings["headlineAlign"])} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="left">À esquerda</option><option value="center">Centralizado</option><option value="right">À direita</option></select></div>
+              <div className="space-y-1.5"><Label>Tamanho padrão (px)</Label><Input type="number" min={10} max={72} value={s.headlineFontSize} onChange={(e) => set("headlineFontSize", Math.min(72, Math.max(10, Number(e.target.value) || 24)))} /></div>
+            </div>
+            <div className="flex flex-wrap gap-2 py-2">
+              <Button type="button" size="sm" variant={s.headlineBold ? "default" : "outline"} onClick={() => set("headlineBold", !s.headlineBold)}><span className="font-bold">B</span> Negrito geral</Button>
+              <Button type="button" size="sm" variant={s.headlineUnderline ? "default" : "outline"} onClick={() => set("headlineUnderline", !s.headlineUnderline)}><span className="underline">U</span> Sublinhado geral</Button>
+            </div>
+            <div className="space-y-3 rounded-lg border border-border p-3">
+              <div><p className="text-sm font-medium">Formatação por palavra ou trecho</p><p className="mt-1 text-xs text-muted-foreground">Selecione o texto acima. Se nada estiver selecionado, o editor tenta aplicar ao redor do cursor.</p></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5"><Label>Cor da seleção</Label><div className="flex items-center gap-2"><input type="color" value={headlineWordColor} onChange={(e) => setHeadlineWordColor(e.target.value)} className="h-9 w-11 cursor-pointer rounded border border-border bg-transparent" /><Input value={headlineWordColor} onChange={(e) => setHeadlineWordColor(e.target.value)} /></div></div>
+                <div className="space-y-1.5"><Label>Tamanho da seleção (px)</Label><Input type="number" min={10} max={96} value={headlineWordSize} onChange={(e) => setHeadlineWordSize(Math.min(96, Math.max(10, Number(e.target.value) || 32)))} /></div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" onClick={() => applyHeadlineStyle({ color: headlineWordColor })}>Aplicar cor</Button>
+                <Button type="button" size="sm" onClick={() => applyHeadlineStyle({ size: headlineWordSize })}>Aplicar tamanho</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => applyHeadlineStyle({ bold: true })}><span className="font-bold">B</span> Negrito</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => applyHeadlineStyle({ underline: true })}><span className="underline">U</span> Sublinhado</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => applyHeadlineStyle({ italic: true })}><span className="italic">I</span> Itálico</Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => applyHeadlineStyle({ color: s.headlineColor, size: undefined, bold: undefined, underline: undefined, italic: undefined })}>Limpar estilo da seleção</Button>
+              </div>
+            </div>
           </Section>
 
           <Section id="traffic" title="Filtro de visitantes" toggle="trafficFilter" badge="novo">
