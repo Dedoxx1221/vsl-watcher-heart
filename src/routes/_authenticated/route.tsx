@@ -21,7 +21,7 @@ function Layout() {
       <aside className="border-b border-sidebar-border bg-sidebar p-4 md:sticky md:top-0 md:h-screen md:w-56 md:border-b-0 md:border-r">
         <div className="mb-6 flex items-center gap-2 px-2">
           <span className="h-3 w-3 rounded-full bg-primary" />
-          <span className="font-display text-lg font-bold">Vexora</span>
+          <span className="font-display text-lg font-bold">Retina</span>
         </div>
         <nav className="flex gap-1 md:flex-col">
           <Link to="/dashboard" className={item} activeProps={active}><BarChart3 className="h-4 w-4" />Analytics</Link>

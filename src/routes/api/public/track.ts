@@ -13,18 +13,11 @@ const schema = z.object({
     viewer_id: z.string().min(8).max(64),
     campaign: z.string().max(200).nullable().optional(),
     referrer: z.string().max(1000).nullable().optional(),
-    utm_source: z.string().max(200).nullable().optional(),
-    utm_medium: z.string().max(200).nullable().optional(),
-    utm_campaign: z.string().max(200).nullable().optional(),
-    utm_content: z.string().max(200).nullable().optional(),
-    utm_term: z.string().max(200).nullable().optional(),
   }),
   stats: z.object({
     watched: z.number().min(0).max(100000),
     paused: z.number().min(0).max(1000000),
     max_position: z.number().min(0).max(100000),
-    current_position: z.number().min(0).max(100000).optional().default(0),
-    is_playing: z.boolean().optional().default(false),
     duration: z.number().min(0).max(100000).nullable().optional(),
   }),
   events: z.array(z.object({
@@ -33,7 +26,6 @@ const schema = z.object({
     position: z.number().min(0).max(100000),
     from: z.number().min(0).max(100000).nullable().optional(),
   })).max(200),
-  heartbeat: z.boolean().optional().default(false),
   ranges: z.array(z.object({
     id: z.string().min(8).max(100),
     start: z.number().min(0).max(100000),
@@ -60,11 +52,6 @@ export const Route = createFileRoute("/api/public/track")({
         }
         const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
         const { session, stats, events, ranges } = body;
-        const ua = request.headers.get("user-agent") ?? "";
-        const deviceType = /tablet|ipad/i.test(ua) ? "Tablet" : /mobile|android|iphone/i.test(ua) ? "Mobile" : "Desktop";
-        const country = request.headers.get("cf-ipcountry") ?? request.headers.get("x-vercel-ip-country") ?? null;
-        const region = request.headers.get("x-vercel-ip-country-region") ?? request.headers.get("cf-region") ?? null;
-        const city = request.headers.get("x-vercel-ip-city") ?? request.headers.get("cf-ipcity") ?? null;
 
         const { data: video } = await db
           .from("videos").select("id, duration_seconds").eq("id", session.video_id).maybeSingle();
@@ -81,18 +68,7 @@ export const Route = createFileRoute("/api/public/track")({
           viewer_id: existing?.viewer_id ?? session.viewer_id,
           campaign: existing?.campaign ?? session.campaign ?? null,
           referrer: existing?.referrer ?? session.referrer ?? null,
-          user_agent: existing?.user_agent ?? ua.slice(0, 400) ?? null,
-          country: existing?.country ?? country,
-          region: existing?.region ?? region,
-          city: existing?.city ?? (city ? decodeURIComponent(city.replace(/\\+/g, " ")) : null),
-          device_type: existing?.device_type ?? deviceType,
-          utm_source: existing?.utm_source ?? session.utm_source ?? null,
-          utm_medium: existing?.utm_medium ?? session.utm_medium ?? null,
-          utm_campaign: existing?.utm_campaign ?? session.utm_campaign ?? session.campaign ?? null,
-          utm_content: existing?.utm_content ?? session.utm_content ?? null,
-          utm_term: existing?.utm_term ?? session.utm_term ?? null,
-          current_position: stats.current_position,
-          is_playing: stats.is_playing,
+          user_agent: existing?.user_agent ?? request.headers.get("user-agent")?.slice(0, 400) ?? null,
           last_seen_at: new Date().toISOString(),
           played: (existing?.played ?? false) || types.has("play") || stats.watched > 0,
           reached_offer: (existing?.reached_offer ?? false) || types.has("cta_reached"),

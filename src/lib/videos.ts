@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const videosQuery = queryOptions({
   queryKey: ["videos"],
-  staleTime: 30_000,
-  gcTime: 5 * 60_000,
   queryFn: async () => {
     const { data, error } = await supabase.from("videos").select("*").order("created_at");
     if (error) throw error;

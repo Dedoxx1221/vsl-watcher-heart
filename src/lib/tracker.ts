@@ -30,7 +30,6 @@ export class VslTracker {
   private duration: number | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private hasPlayed = false;
-  private currentPosition = 0;
 
   constructor(private videoId: string, private offerAt: number | null, private campaign: string | null, private endpoint: string) {
     this.key = `vsl_session_${videoId}`;
@@ -44,7 +43,7 @@ export class VslTracker {
     this.s = p;
     this.hasPlayed = p.watched > 0;
     this.save();
-    this.timer = setInterval(() => this.flush(false, true), 5000);
+    this.timer = setInterval(() => this.flush(), 5000);
   }
 
   private save() {
@@ -73,7 +72,6 @@ export class VslTracker {
       this.push("resume", t);
     }
     this.playing = true;
-    this.currentPosition = t;
     this.lastTime = t;
     this.save();
     this.flush();
@@ -82,7 +80,6 @@ export class VslTracker {
   onPause(t: number, ended = false) {
     if (!this.playing) return;
     this.playing = false;
-    this.currentPosition = t;
     this.closeRange();
     if (!ended) { this.pausedAt = Date.now(); this.push("pause", t); }
     this.flush();
@@ -91,13 +88,11 @@ export class VslTracker {
   onSeeked(from: number, to: number) {
     this.closeRange();
     if (Math.abs(to - from) >= 1) this.push(to > from ? "seek_forward" : "seek_backward", to, from);
-    this.currentPosition = to;
     this.lastTime = to;
   }
 
   onTime(t: number, rate: number) {
     if (!this.playing) { this.lastTime = t; return; }
-    this.currentPosition = t;
     const delta = t - this.lastTime;
     // Natural progression only: small forward steps proportional to playback rate.
     if (delta > 0 && delta <= 1.5 * Math.max(1, rate) + 0.5) {
@@ -135,20 +130,14 @@ export class VslTracker {
     this.flush(true);
   }
 
-  flush(beacon = false, heartbeat = false) {
-    if (!heartbeat && !this.queue.length && !this.dirtyRanges.size) return;
+  flush(beacon = false) {
+    if (!this.queue.length && !this.dirtyRanges.size) return;
     const payload = JSON.stringify({
       session: {
         id: this.s.id, video_id: this.videoId, viewer_id: viewerId(),
         campaign: this.campaign, referrer: document.referrer || null,
-        utm_source: new URLSearchParams(window.location.search).get("utm_source"),
-        utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
-        utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
-        utm_content: new URLSearchParams(window.location.search).get("utm_content"),
-        utm_term: new URLSearchParams(window.location.search).get("utm_term"),
       },
-      stats: { watched: r2(this.s.watched), paused: r2(this.s.paused), max_position: r2(this.s.max), current_position: r2(this.currentPosition), is_playing: this.playing, duration: this.duration },
-      heartbeat,
+      stats: { watched: r2(this.s.watched), paused: r2(this.s.paused), max_position: r2(this.s.max), duration: this.duration },
       events: this.queue.splice(0, 200),
       ranges: [...this.dirtyRanges.values()].slice(0, 200),
     });

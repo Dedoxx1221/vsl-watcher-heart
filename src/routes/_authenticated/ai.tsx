@@ -14,9 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export const Route = createFileRoute("/_authenticated/ai")({
   head: () => ({
     meta: [
-      { title: "Diagnóstico com IA — Vexora" },
+      { title: "Diagnóstico com IA — Retina" },
       { name: "description", content: "Causas prováveis de abandono e edições recomendadas para sua VSL." },
-      { property: "og:title", content: "Diagnóstico com IA — Vexora" },
+      { property: "og:title", content: "Diagnóstico com IA — Retina" },
       { property: "og:description", content: "Causas prováveis de abandono e edições recomendadas para sua VSL." },
     ],
   }),

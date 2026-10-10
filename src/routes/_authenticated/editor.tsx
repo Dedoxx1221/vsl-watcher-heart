@@ -15,12 +15,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/editor")({
-  validateSearch: (search: Record<string, unknown>) => ({ v: typeof search.v === "string" ? search.v : undefined }),
   head: () => ({
     meta: [
-      { title: "Editor do player — Vexora" },
+      { title: "Editor do player — Retina" },
       { name: "description", content: "Configure autoplay, progresso, headlines, ganchos, pixels, legendas e botões da sua VSL." },
-      { property: "og:title", content: "Editor do player — Vexora" },
+      { property: "og:title", content: "Editor do player — Retina" },
       { property: "og:description", content: "Configure autoplay, progresso, headlines, ganchos, pixels, legendas e botões da sua VSL." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -40,10 +39,9 @@ function parseTime(s: string): number | null {
 type BoolKey = { [K in keyof PlayerSettings]-?: PlayerSettings[K] extends boolean | undefined ? K : never }[keyof PlayerSettings] & keyof PlayerSettings;
 
 function Editor() {
-  const search = Route.useSearch();
   const { data: videos } = useSuspenseQuery(videosQuery);
   const qc = useQueryClient();
-  const [videoId, setVideoId] = useState(() => search.v && videos.some((v) => v.id === search.v) ? search.v : (videos[0]?.id ?? ""));
+  const [videoId, setVideoId] = useState(videos[0]?.id ?? "");
   const video = videos.find((v) => v.id === videoId);
   const [s, setS] = useState<PlayerSettings>(DEFAULT_SETTINGS);
   const [offer, setOffer] = useState("");
@@ -51,10 +49,6 @@ function Editor() {
   const [saving, setSaving] = useState(false);
   const [previewCta, setPreviewCta] = useState(true);
   const [open, setOpen] = useState<string | null>("style");
-
-  useEffect(() => {
-    if (search.v && videos.some((v) => v.id === search.v)) setVideoId(search.v);
-  }, [search.v, videos]);
 
   useEffect(() => {
     if (!video) return;
@@ -177,10 +171,33 @@ function Editor() {
           <Section id="autoplay" title="Smart Autoplay™" toggle="autoplay">
             <p className="py-2 text-xs text-muted-foreground">O vídeo começa mudo em loop; ao tocar, reinicia do zero com som. Desligado, mostra a thumbnail com botão de play.</p>
             <Text k="autoplayImage" label="Imagem ou GIF sobre o vídeo (URL)" placeholder="https://…/imagem.gif — vazio usa a thumbnail" />
-            <div className="my-3 rounded-xl border border-border bg-muted/30 p-4">
-              <p className="text-sm font-medium">Edite diretamente na prévia</p>
-              <p className="mt-1 text-xs text-muted-foreground">Clique e arraste a imagem para posicionar. Arraste a alça redonda no canto para aumentar ou diminuir. As alterações são salvas quando você clicar em Salvar.</p>
-              <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={() => { set("autoplayImageSize", 70); set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Restaurar posição e tamanho</Button>
+            <div className="my-3 rounded-xl border border-border bg-muted/30 p-4 space-y-4">
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <Label htmlFor="autoplay-image-size">Tamanho da imagem</Label>
+                  <span className="num text-sm font-semibold">{s.autoplayImageSize}%</span>
+                </div>
+                <input id="autoplay-image-size" aria-label="Tamanho da imagem" type="range" min={15} max={100} step={1} value={s.autoplayImageSize} onChange={(e) => set("autoplayImageSize", Number(e.target.value))} className="w-full accent-primary" />
+                <div className="flex justify-between text-xs text-muted-foreground"><span>Pequena</span><span>Grande</span></div>
+              </div>
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <Label htmlFor="autoplay-image-x">Posição horizontal</Label>
+                  <span className="num text-sm font-semibold">{s.autoplayImageX}%</span>
+                </div>
+                <input id="autoplay-image-x" aria-label="Posição horizontal da imagem" type="range" min={0} max={100} step={1} value={s.autoplayImageX} onChange={(e) => set("autoplayImageX", Number(e.target.value))} className="w-full accent-primary" />
+                <div className="flex justify-between text-xs text-muted-foreground"><span>Esquerda</span><span>Direita</span></div>
+              </div>
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <Label htmlFor="autoplay-image-y">Posição vertical</Label>
+                  <span className="num text-sm font-semibold">{s.autoplayImageY}%</span>
+                </div>
+                <input id="autoplay-image-y" aria-label="Posição vertical da imagem" type="range" min={0} max={100} step={1} value={s.autoplayImageY} onChange={(e) => set("autoplayImageY", Number(e.target.value))} className="w-full accent-primary" />
+                <div className="flex justify-between text-xs text-muted-foreground"><span>Topo</span><span>Base</span></div>
+              </div>
+              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => { set("autoplayImageSize", 70); set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Centralizar e restaurar tamanho</Button>
+              <p className="text-xs text-muted-foreground">Os ajustes aparecem imediatamente na prévia ao lado. Depois, clique em Salvar para publicar.</p>
             </div>
             <Text k="autoplayText" label="Mensagem sobre o vídeo (opcional)" placeholder="Seu vídeo já começou — toque para ouvir" />
           </Section>
@@ -269,7 +286,6 @@ function Editor() {
               key={`${video.id}-${previewCta}-${s.autoplay}`}
               video={{ ...video, checkout_url: checkout || video.checkout_url, offer_time_seconds: parseTime(offer) }}
               settings={{ ...s, ctaAlways: previewCta }}
-              onAutoplayImageTransform={({ x, y, size }) => setS((prev) => ({ ...prev, autoplayImageX: Math.round(x * 10) / 10, autoplayImageY: Math.round(y * 10) / 10, autoplayImageSize: Math.round(size * 10) / 10 }))}
               preview
             />
             <p className="mt-2 text-xs text-muted-foreground">A prévia não gera métricas nem dispara pixels.</p>
