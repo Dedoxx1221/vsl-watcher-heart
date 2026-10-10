@@ -331,7 +331,18 @@ function Editor() {
               <Input type="number" step={0.05} min={0.5} max={2} value={s.turboSpeed} onChange={(e) => set("turboSpeed", Math.min(2, Math.max(0.5, Number(e.target.value) || 1)))} className="num h-8 w-20" /></div>
           </Section>
 
-          <Section id="headline" title="Headline acima do vídeo" toggle="headline">
+          <div className="border-b border-border last:border-0">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <button type="button" onClick={() => setOpen(open === "headline" ? null : "headline")} className="flex flex-1 items-center gap-2 text-left text-sm font-medium">
+                <ChevronDown className={"h-4 w-4 text-muted-foreground transition-transform " + (open === "headline" ? "" : "-rotate-90")} />
+                Headline acima do vídeo
+              </button>
+              <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                {s.headline ? "On" : "Off"}
+                <Switch checked={s.headline} onCheckedChange={(v) => set("headline", v)} />
+              </span>
+            </div>
+            {open === "headline" && <div className="divide-y divide-border px-4 pb-4">
             <div className="space-y-2 py-3">
               <Label>Texto da headline</Label>
               <textarea
@@ -370,7 +381,8 @@ function Editor() {
                 <Button type="button" size="sm" variant="ghost" onClick={() => applyHeadlineStyle({ color: s.headlineColor, size: undefined, bold: undefined, underline: undefined, italic: undefined })}>Limpar estilo da seleção</Button>
               </div>
             </div>
-          </Section>
+            </div>}
+          </div>
 
           <Section id="traffic" title="Filtro de visitantes" toggle="trafficFilter" badge="novo">
             <p className="py-2 text-xs text-muted-foreground">Use esta opção apenas se souber configurar parâmetros de URL.</p>
