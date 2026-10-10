@@ -15,9 +15,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 export const Route = createFileRoute("/_authenticated/videos")({
   head: () => ({
     meta: [
-      { title: "Biblioteca de VSLs — Retina" },
+      { title: "Biblioteca de VSLs — Vexora" },
       { name: "description", content: "Cadastre VSLs e gere o código de incorporação." },
-      { property: "og:title", content: "Biblioteca de VSLs — Retina" },
+      { property: "og:title", content: "Biblioteca de VSLs — Vexora" },
       { property: "og:description", content: "Cadastre VSLs e gere o código de incorporação." },
     ],
   }),
