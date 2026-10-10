@@ -92,15 +92,26 @@ function Embed() {
           height: auto !important;
           padding: 0 !important;
         }
+        /* Keep the embed canvas transparent; only media and actual controls may paint content. */
         #vexora-embed-root,
         #vexora-embed-root > div,
         #vexora-embed-root .vexora-headline,
-        #vexora-embed-root video {
+        #vexora-embed-root video,
+        #vexora-embed-root .vexora-headline > div {
           background: transparent !important;
           background-color: transparent !important;
           background-image: none !important;
           box-shadow: none !important;
         }
+        html, body, #root, #vexora-embed-root {
+          color-scheme: normal !important;
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+          border: 0 !important;
+        }
+        body { background-attachment: initial !important; }
         #vexora-embed-root .vexora-headline {
           border: 0 !important;
           outline: 0 !important;
