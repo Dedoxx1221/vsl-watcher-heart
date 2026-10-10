@@ -202,30 +202,13 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
   // Ajuste isotônico decrescente: reduz oscilações de amostras pequenas sem
   // inventar uma queda em cada ponto. A curva exibida nunca sobe, como em players de VSL.
-  const series = useMemo(() => {
-    const raw = a.retention.map(([t, n]) => ({ t, n, r: Math.max(0, Math.min(100, pct(n, a.plays))) }));
-    if (raw.length < 3) return raw;
-    const blocks: { start: number; end: number; sum: number; weight: number }[] = [];
-    raw.forEach((point, i) => {
-      blocks.push({ start: i, end: i, sum: point.r, weight: 1 });
-      // Para uma curva decrescente, blocos adjacentes não podem subir.
-      while (blocks.length > 1) {
-        const right = blocks[blocks.length - 1]!;
-        const left = blocks[blocks.length - 2]!;
-        if (left.sum / left.weight >= right.sum / right.weight) break;
-        blocks.splice(blocks.length - 2, 2, {
-          start: left.start, end: right.end,
-          sum: left.sum + right.sum, weight: left.weight + right.weight,
-        });
-      }
-    });
-    const fitted = [...raw];
-    for (const block of blocks) {
-      const value = block.sum / block.weight;
-      for (let i = block.start; i <= block.end; i++) fitted[i] = { ...raw[i]!, r: value };
-    }
-    return fitted;
-  }, [a]);
+  // A curva deve refletir os valores observados em cada intervalo, sem suavização
+  // isotônica que apaga oscilações reais e cria longos trechos artificiais.
+  const series = useMemo(() => (
+    a.retention
+      .map(([t, n]) => ({ t, n, r: Math.max(0, Math.min(100, pct(n, a.plays))) }))
+      .sort((left, right) => left.t - right.t)
+  ), [a.retention, a.plays]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
   // Cada espectador ativo avança individualmente no eixo do tempo entre atualizações do servidor.
@@ -254,16 +237,6 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
     }
     return { id: viewer.session_id, x: position, y: retention, position, retention };
   });
-
-  // Quando há audiência ao vivo, não desenhar retenção futura como se já tivesse sido observada.
-  // Mantém a curva histórica até a posição mais avançada em reprodução e deixa o trecho futuro próximo de zero.
-  const chartSeries = useMemo(() => {
-    if (!liveMarkers.length) return series;
-    const furthestLivePosition = Math.max(...liveMarkers.map(marker => marker.position));
-    return series.map(point => point.t > furthestLivePosition
-      ? { ...point, r: Math.min(point.r, 1), n: 0 }
-      : point);
-  }, [series, liveMarkers]);
 
   const changes = useMemo(() => {
     const step = Math.max(1, Math.round(series.length / 60)); // ~60 windows
@@ -367,7 +340,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
               />
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              <Area type="monotone" dataKey="r" name="Retenção" stroke="var(--chart-1)" strokeWidth={2.75} fill="url(#rg)" dot={false} activeDot={{ r: 4, stroke: "var(--background)", strokeWidth: 2 }} isAnimationActive={false} />
+              <Area type="linear" dataKey="r" name="Retenção" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4, stroke: "var(--background)", strokeWidth: 2 }} isAnimationActive={false} />
               {liveMarkers.map((marker) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} ifOverflow="extendDomain" shape={(props: { cx?: number; cy?: number }) => props.cx == null || props.cy == null ? <g /> : <circle cx={props.cx} cy={props.cy} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} style={{ cursor: "pointer" }} onMouseEnter={() => setHoveredLiveMarker({ id: marker.id, position: marker.position })} onMouseLeave={() => setHoveredLiveMarker(null)} /> } />)}
             </AreaChart>
           </ResponsiveContainer>
