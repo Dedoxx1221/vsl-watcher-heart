@@ -162,7 +162,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   if (blocked) return null;
 
   return (
-    <div ref={wrap} style={style} className={"box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-background " + (cfg.aspect === "9:16" ? "max-w-[480px]" : "")}>
+    <div ref={wrap} style={style} className={"box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent " + (cfg.aspect === "9:16" ? "max-w-[420px]" : "")}>
       {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
         <div className="box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign }}>
           {cfg.headlineUseImage ? (
