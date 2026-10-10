@@ -299,7 +299,7 @@ function Editor() {
       </div>
     </div>
   );
-  const Text = ({ k, label, placeholder }: { k: "pauseText" | "resumeText" | "ctaText" | "autoplayText" | "autoplayImage" | "headlineText" | "trafficParam" | "trafficRedirect" | "thumbPauseUrl" | "thumbEndUrl" | "fbPixel" | "ga4" | "captionsUrl"; label: string; placeholder?: string }) => (
+  const Text = ({ k, label, placeholder }: { k: "pauseText" | "resumeText" | "ctaText" | "autoplayText" | "autoplayImage" | "headlineText" | "headlineImageUrl" | "trafficParam" | "trafficRedirect" | "thumbPauseUrl" | "thumbEndUrl" | "fbPixel" | "ga4" | "captionsUrl"; label: string; placeholder?: string }) => (
     <div className="space-y-1.5 py-2"><Label>{label}</Label><Input value={s[k]} placeholder={placeholder} onChange={(e) => set(k, e.target.value)} /></div>
   );
   const Section = ({ id, title, toggle, badge, children }: { id: string; title: string; toggle?: BoolKey; badge?: string; children: ReactNode }) => {
@@ -445,6 +445,20 @@ function Editor() {
             </div>
             {open === "headline" && <div className="divide-y divide-border px-4 pb-4">
             <div className="space-y-2 py-3">
+              <Label>Tipo de headline</Label>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" variant={!s.headlineUseImage ? "default" : "outline"} onClick={() => set("headlineUseImage", false)}>Texto formatado</Button>
+                <Button type="button" size="sm" variant={s.headlineUseImage ? "default" : "outline"} onClick={() => set("headlineUseImage", true)}>Imagem</Button>
+              </div>
+              {s.headlineUseImage ? (
+                <>
+                  <Label>URL direta da imagem da headline</Label>
+                  <Input value={s.headlineImageUrl} onChange={(e) => set("headlineImageUrl", e.target.value)} placeholder="https://site.com/headline.webp" />
+                  <p className="text-xs text-muted-foreground">Use o link direto do arquivo de imagem. A prévia acima do vídeo mostra como ela aparecerá na página de vendas.</p>
+                  <ImageUrlPreview url={s.headlineImageUrl} title="Prévia da imagem da headline" aspect={s.aspect} />
+                </>
+              ) : (
+                <>
               <Label>Texto da headline</Label>
               <div
                 ref={headlineEditorRef}
@@ -490,6 +504,8 @@ function Editor() {
                 className="min-h-24 w-full whitespace-pre-wrap rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground"
               />
               <p className="text-xs text-muted-foreground">Para formatar palavras diferentes, selecione o trecho no campo acima e aplique a cor, tamanho ou estilo desejado.</p>
+                </>
+              )}
             </div>
             <Color k="headlineColor" label="Cor padrão do texto" />
             <div className="grid grid-cols-2 gap-3 py-2">
