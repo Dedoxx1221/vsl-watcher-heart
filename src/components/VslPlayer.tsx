@@ -162,9 +162,9 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   if (blocked) return null;
 
   return (
-    <div ref={wrap} style={style} className={"box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent " + (cfg.aspect === "9:16" ? "max-w-[420px]" : "")}>
+    <div ref={wrap} style={style} className={"relative box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent " + (cfg.aspect === "9:16" ? "max-w-[420px]" : "")}>
       {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
-        <div className="box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign }}>
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign, backgroundColor: "transparent" }}>
           {cfg.headlineUseImage ? (
             <img src={cfg.headlineImageUrl} alt="Headline" loading="eager" className="block h-auto max-w-full" style={{ maxHeight: "40vh", objectFit: "contain", boxSizing: "border-box", marginLeft: cfg.headlineAlign === "left" ? 0 : "auto", marginRight: cfg.headlineAlign === "right" ? 0 : "auto" }} />
           ) : (() => {
@@ -172,8 +172,8 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
               ? cfg.headlineSegments
               : [{ text: cfg.headlineText }];
             return (
-              <div style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontFamily: cfg.headlineFontFamily, fontWeight: cfg.headlineFontWeight || (cfg.headlineBold ? 700 : 400), fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", lineHeight: cfg.headlineLineHeight, letterSpacing: `${cfg.headlineLetterSpacing}px`, textTransform: cfg.headlineTransform, backgroundColor: cfg.headlineBackgroundColor, width: `${Math.min(100, Math.max(30, cfg.headlineWidth || 100))}%`, maxWidth: "100%", boxSizing: "border-box", padding: `${cfg.headlinePadding}px`, margin: "0 auto", overflowWrap: "anywhere" }}>
-                {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, backgroundColor: segment.backgroundColor || undefined, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: [segment.underline ? "underline" : "", segment.strike ? "line-through" : ""].filter(Boolean).join(" ") || "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
+              <div style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontFamily: cfg.headlineFontFamily, fontWeight: cfg.headlineFontWeight || (cfg.headlineBold ? 700 : 400), fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", lineHeight: cfg.headlineLineHeight, letterSpacing: `${cfg.headlineLetterSpacing}px`, textTransform: cfg.headlineTransform, backgroundColor: "transparent", width: `${Math.min(100, Math.max(30, cfg.headlineWidth || 100))}%`, maxWidth: "100%", boxSizing: "border-box", padding: `${cfg.headlinePadding}px`, margin: "0 auto", overflowWrap: "anywhere" }}>
+                {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, backgroundColor: "transparent", fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: [segment.underline ? "underline" : "", segment.strike ? "line-through" : ""].filter(Boolean).join(" ") || "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
               </div>
             );
           })()}
