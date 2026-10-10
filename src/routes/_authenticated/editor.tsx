@@ -115,9 +115,9 @@ function Editor() {
     let end = Math.max(0, Math.min(text.length, Math.max(headlineSelection.start, headlineSelection.end)));
     if (start === end) {
       start = Math.min(start, text.length);
-      while (start > 0 && !/\\s/.test(text[start - 1])) start--;
+      while (start > 0 && !/\s/.test(text[start - 1])) start--;
       end = Math.max(start, Math.min(text.length, headlineSelection.start));
-      while (end < text.length && !/\\s/.test(text[end])) end++;
+      while (end < text.length && !/\s/.test(text[end])) end++;
       if (start === end) return;
     }
     const source: HeadlineSegment[] = s.headlineSegments.length && s.headlineSegments.map((part) => part.text).join("") === text
