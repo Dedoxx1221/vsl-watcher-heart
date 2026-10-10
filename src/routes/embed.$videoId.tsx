@@ -85,6 +85,24 @@ function Embed() {
           height: auto !important;
           padding: 0 !important;
         }
+        #vexora-embed-root,
+        #vexora-embed-root *:not(video):not(img) {
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+        }
+        #vexora-embed-root .vexora-headline,
+        #vexora-embed-root .vexora-headline *,
+        #vexora-embed-root video {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+        }
+        #vexora-embed-root .vexora-headline {
+          border: 0 !important;
+          outline: 0 !important;
+        }
       `}</style>
       <div
         id="vexora-embed-root"
