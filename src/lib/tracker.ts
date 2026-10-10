@@ -141,6 +141,11 @@ export class VslTracker {
       session: {
         id: this.s.id, video_id: this.videoId, viewer_id: viewerId(),
         campaign: this.campaign, referrer: document.referrer || null,
+        utm_source: new URLSearchParams(window.location.search).get("utm_source"),
+        utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
+        utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
+        utm_content: new URLSearchParams(window.location.search).get("utm_content"),
+        utm_term: new URLSearchParams(window.location.search).get("utm_term"),
       },
       stats: { watched: r2(this.s.watched), paused: r2(this.s.paused), max_position: r2(this.s.max), current_position: r2(this.currentPosition), is_playing: this.playing, duration: this.duration },
       heartbeat,
