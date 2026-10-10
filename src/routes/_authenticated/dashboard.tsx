@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
@@ -244,17 +244,21 @@ function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; vide
   const livePositionRef = useRef<number | null>(null);
   const liveUpdatedAtRef = useRef<number>(Date.now());
 
-  // Interpola suavemente entre atualizações do servidor; a animação congela em pausa/saída.
-  useMemo(() => {
-    if (livePosition != null) {
-      livePositionRef.current = livePosition;
-      liveUpdatedAtRef.current = Date.now();
-      setLiveCursor(livePosition);
-      setLiveCursorRunning(true);
-    } else {
+  // Interpola suavemente entre heartbeats do servidor. Pausa/saída congela o traço.
+  useEffect(() => {
+    if (livePosition == null) {
       setLiveCursorRunning(false);
+      return;
     }
-    return null;
+    livePositionRef.current = livePosition;
+    liveUpdatedAtRef.current = Date.now();
+    setLiveCursor(livePosition);
+    setLiveCursorRunning(true);
+    const timer = window.setInterval(() => {
+      const elapsed = (Date.now() - liveUpdatedAtRef.current) / 1000;
+      setLiveCursor((livePositionRef.current ?? livePosition) + elapsed);
+    }, 100);
+    return () => window.clearInterval(timer);
   }, [livePosition, livePlaying.length]);
 
   const changes = useMemo(() => {
