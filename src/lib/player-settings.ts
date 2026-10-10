@@ -29,6 +29,7 @@ export type PlayerSettings = {
   headlineAlign: "left" | "center" | "right";
   headlineFontSize: number;
   headlineBold: boolean;
+  headlineItalic: boolean;
   headlineUnderline: boolean;
   headlineSegments: HeadlineSegment[];
   // Filtro de tráfego
@@ -89,6 +90,7 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   headlineAlign: "center",
   headlineFontSize: 24,
   headlineBold: true,
+  headlineItalic: false,
   headlineUnderline: false,
   headlineSegments: [],
   trafficFilter: false,
