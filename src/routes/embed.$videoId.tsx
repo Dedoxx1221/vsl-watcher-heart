@@ -33,10 +33,10 @@ function Embed() {
       bodyOverflow: body.style.overflow,
       bodyMargin: body.style.margin,
     };
-    html.style.background = "#ffffff";
+    html.style.background = "transparent";
     html.style.backgroundImage = "none";
     html.style.overflow = "hidden";
-    body.style.background = "#ffffff";
+    body.style.background = "transparent";
     body.style.backgroundImage = "none";
     body.style.overflow = "hidden";
     body.style.margin = "0";
@@ -61,14 +61,14 @@ function Embed() {
       return data;
     },
   });
-  if (isLoading) return <div className="fixed inset-0 overflow-hidden bg-white" />;
-  if (!video) return <div className="fixed inset-0 overflow-hidden bg-white p-6 text-muted-foreground">Vídeo não encontrado.</div>;
+  if (isLoading) return <div className="fixed inset-0 overflow-hidden bg-transparent" />;
+  if (!video) return <div className="fixed inset-0 overflow-hidden bg-transparent p-6 text-muted-foreground">Vídeo não encontrado.</div>;
   return (
     <>
       <style>{`
         html, body, #root {
-          background: #ffffff !important;
-          background-color: #ffffff !important;
+          background: transparent !important;
+          background-color: transparent !important;
           background-image: none !important;
           box-shadow: none !important;
         }
@@ -109,4 +109,3 @@ function Embed() {
     </>
   );
 }
-
