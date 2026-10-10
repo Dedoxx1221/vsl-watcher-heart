@@ -180,7 +180,22 @@ function Editor() {
             <div className="my-3 rounded-xl border border-border bg-muted/30 p-4">
               <p className="text-sm font-medium">Edite diretamente na prévia</p>
               <p className="mt-1 text-xs text-muted-foreground">Clique e arraste a imagem para posicionar. Arraste a alça redonda no canto para aumentar ou diminuir. As alterações são salvas quando você clicar em Salvar.</p>
-              <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={() => { set("autoplayImageSize", 70); set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Restaurar posição e tamanho</Button>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => { set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Centralizar imagem</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => { set("autoplayImageSize", 70); }}>Tamanho padrão</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => {
+                  const ratio = s.aspect === "9:16" ? 16 / 9 : 9 / 16;
+                  const image = new Image();
+                  image.onload = () => set("autoplayImageSize", Math.min(95, 95 * ratio * image.naturalWidth / Math.max(1, image.naturalHeight)));
+                  image.src = s.autoplayImage || video.thumbnail_url || "";
+                }}>Enquadrar na largura</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => {
+                  const ratio = s.aspect === "9:16" ? 16 / 9 : 9 / 16;
+                  const image = new Image();
+                  image.onload = () => set("autoplayImageSize", Math.min(100, 95 * ratio * image.naturalWidth / Math.max(1, image.naturalHeight)));
+                  image.src = s.autoplayImage || video.thumbnail_url || "";
+                }}>Enquadrar na altura</Button>
+              </div>
             </div>
             <Text k="autoplayText" label="Mensagem sobre o vídeo (opcional)" placeholder="Seu vídeo já começou — toque para ouvir" />
           </Section>
