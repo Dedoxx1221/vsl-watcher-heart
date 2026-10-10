@@ -172,7 +172,7 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
             href={checkoutHref}
             target="_top"
             onClick={() => T()?.onCheckout(el().currentTime)}
-            className="{cfg.ctaPulse ? "cta-pulse " : ""}block rounded-[7px] bg-[var(--cta-bg)] px-6 py-4 text-base font-bold leading-snug text-[var(--cta-fg)] no-underline sm:inline-block sm:text-lg"
+            className={`${cfg.ctaPulse ? "cta-pulse " : ""}block rounded-[7px] bg-[var(--cta-bg)] px-6 py-4 text-base font-bold leading-snug text-[var(--cta-fg)] no-underline sm:inline-block sm:text-lg`}
           >
             {cfg.ctaText}
           </a>
