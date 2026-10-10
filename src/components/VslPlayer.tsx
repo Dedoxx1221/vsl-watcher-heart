@@ -36,7 +36,7 @@ function fire(cfg: PlayerSettings, fb: string, ga: string) {
   if (cfg.ga4) w.gtag?.("event", ga);
 }
 
-export function VslPlayer({ video, settings, preview = false, onAutoplayImageTransform }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean; onAutoplayImageTransform?: undefined | ((next: { x: number; y: number; size: number }) => void }) {
+export function VslPlayer({ video, settings, preview = false, onAutoplayImageTransform }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean; onAutoplayImageTransform?: undefined | ((next: { x: number; y: number; size: number }) => void)) }) {
   const cfg = settings ?? parseSettings(video.player_settings);
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
