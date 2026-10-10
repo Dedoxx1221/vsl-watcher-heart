@@ -333,7 +333,8 @@ function Editor() {
     loading="eager"
     allow="autoplay; fullscreen; picture-in-picture"
     allowfullscreen
-    style="display:block;position:relative;width:100%;height:500px;border:0;background:transparent"
+    allowtransparency="true"
+    style="display:block;position:relative;width:100%;height:500px;border:0;background:transparent!important;color-scheme:normal"
   ></iframe>
   <script>
     (function(){
