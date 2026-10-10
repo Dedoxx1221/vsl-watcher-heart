@@ -164,7 +164,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   return (
     <div ref={wrap} style={style} className={"relative box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent " + (cfg.aspect === "9:16" ? "max-w-[420px]" : "")}>
       {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
-        <div className="relative z-20 box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign, backgroundColor: "transparent" }}>
+        <div className="relative z-20 box-border w-full min-w-0 max-w-full overflow-visible px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign, backgroundColor: "transparent", backgroundImage: "none" }}>
           {cfg.headlineUseImage ? (
             <img src={cfg.headlineImageUrl} alt="Headline" loading="eager" className="block h-auto max-w-full" style={{ maxHeight: "40vh", objectFit: "contain", boxSizing: "border-box", marginLeft: cfg.headlineAlign === "left" ? 0 : "auto", marginRight: cfg.headlineAlign === "right" ? 0 : "auto" }} />
           ) : (() => {
@@ -179,7 +179,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           })()}
         </div>
       )}
-      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-background leading-none " + (cfg.aspect === "9:16" ? "aspect-[9/16] max-w-[480px]" : "aspect-video") + (cfg.rounded ? " rounded-xl" : "")}>
+      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent leading-none " + (cfg.aspect === "9:16" ? "aspect-[9/16] max-w-[480px]" : "aspect-video") + (cfg.rounded ? " rounded-xl" : "")}>
         <video
           ref={ref}
           src={video.video_url}
@@ -192,7 +192,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           poster={video.thumbnail_url ?? undefined}
           disablePictureInPicture
           controlsList="nodownload noplaybackrate noremoteplayback"
-          className="absolute inset-0 block h-full w-full max-w-full bg-background object-contain"
+          className="absolute inset-0 block h-full w-full max-w-full bg-transparent object-contain"
           onClick={togglePause}
           onLoadedMetadata={() => { tracker.current?.setDuration(el().duration); update(); }}
           onDurationChange={update}
