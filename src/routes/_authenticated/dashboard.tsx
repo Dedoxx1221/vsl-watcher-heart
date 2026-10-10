@@ -96,7 +96,32 @@ function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; vide
   const vref = useRef<HTMLVideoElement>(null);
   const [cursor, setCursor] = useState(0);
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
-  const series = useMemo(() => a.retention.map(([t, n]) => ({ t, r: pct(n, a.plays) })), [a]);
+  // Ajuste isotônico decrescente: reduz oscilações de amostras pequenas sem
+  // inventar uma queda em cada ponto. A curva exibida nunca sobe, como em players de VSL.
+  const series = useMemo(() => {
+    const raw = a.retention.map(([t, n]) => ({ t, r: Math.max(0, Math.min(100, pct(n, a.plays))) }));
+    if (raw.length < 3) return raw;
+    const blocks: { start: number; end: number; sum: number; weight: number }[] = [];
+    raw.forEach((point, i) => {
+      blocks.push({ start: i, end: i, sum: point.r, weight: 1 });
+      // Para uma curva decrescente, blocos adjacentes não podem subir.
+      while (blocks.length > 1) {
+        const right = blocks[blocks.length - 1]!;
+        const left = blocks[blocks.length - 2]!;
+        if (left.sum / left.weight >= right.sum / right.weight) break;
+        blocks.splice(blocks.length - 2, 2, {
+          start: left.start, end: right.end,
+          sum: left.sum + right.sum, weight: left.weight + right.weight,
+        });
+      }
+    });
+    const fitted = [...raw];
+    for (const block of blocks) {
+      const value = block.sum / block.weight;
+      for (let i = block.start; i <= block.end; i++) fitted[i] = { ...raw[i]!, r: value };
+    }
+    return fitted;
+  }, [a]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
   const changes = useMemo(() => {
@@ -186,7 +211,7 @@ function Body({ a, offer, videoUrl }: { a: Analytics; offer: number | null; vide
               {changes.drops.slice(0, 3).map((d) => <ReferenceLine key={d.to} x={d.to} stroke="var(--destructive)" strokeDasharray="2 4" />)}
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              <Area type="stepAfter" dataKey="r" stroke="var(--chart-1)" strokeWidth={2} fill="url(#rg)" isAnimationActive={false} />
+              <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
