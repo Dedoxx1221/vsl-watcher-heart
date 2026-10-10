@@ -254,6 +254,16 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
     return { id: viewer.session_id, x: position, y: retention, position, retention };
   });
 
+  // Quando há audiência ao vivo, não desenhar retenção futura como se já tivesse sido observada.
+  // Mantém a curva histórica até a posição mais avançada em reprodução e deixa o trecho futuro próximo de zero.
+  const chartSeries = useMemo(() => {
+    if (!liveMarkers.length) return series;
+    const furthestLivePosition = Math.max(...liveMarkers.map(marker => marker.position));
+    return series.map(point => point.t > furthestLivePosition
+      ? { ...point, r: Math.min(point.r, 1), n: 0 }
+      : point);
+  }, [series, liveMarkers]);
+
   const changes = useMemo(() => {
     const step = Math.max(1, Math.round(series.length / 60)); // ~60 windows
     const w: { from: number; to: number; d: number }[] = [];
