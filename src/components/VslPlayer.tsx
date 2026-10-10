@@ -217,7 +217,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           </div>
         )}
         {overlay && (
-          <button aria-label="Toque para ouvir" onClick={() => start(0)} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
+          <div role="button" tabIndex={0} aria-label="Toque para ouvir" onClick={() => start(0)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") start(0); }} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <img
@@ -249,11 +249,12 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   pointerEvents: preview && onAutoplayImageTransform ? "auto" : undefined,
                 }}
               />
-              {preview && onAutoplayImageTransform && (
+              {preview && onAutoplayImageTransform && ([-1, 1].flatMap((sx) => [-1, 1].map((sy) => (
                 <button
+                  key={`${sx}-${sy}`}
                   type="button"
-                  aria-label="Aumentar ou diminuir imagem arrastando"
-                  title="Arraste para aumentar ou diminuir"
+                  aria-label="Redimensionar imagem"
+                  title="Arraste a alça do canto para aumentar ou diminuir, como no Paint"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                   onPointerDown={(e) => {
                     e.preventDefault(); e.stopPropagation();
@@ -264,15 +265,15 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   onPointerMove={(e) => {
                     const d = imageDrag.current; if (!d || d.mode !== "resize") return;
                     e.preventDefault(); e.stopPropagation();
-                    const delta = (e.clientX - d.startX + e.clientY - d.startY) / Math.max(1, d.width) * 100;
+                    const delta = (sx * (e.clientX - d.startX) + sy * (e.clientY - d.startY)) / Math.max(1, d.width) * 100;
                     onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.min(100, Math.max(15, d.size + delta)) });
                   }}
                   onPointerUp={() => { imageDrag.current = null; }}
                   onPointerCancel={() => { imageDrag.current = null; }}
-                  className="absolute z-[5] flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow-lg cursor-nwse-resize touch-none"
-                  style={{ left: `${Math.min(100, Math.max(0, cfg.autoplayImageX ?? 50))}%`, top: `${Math.min(100, Math.max(0, cfg.autoplayImageY ?? 50))}%`, transform: `translate(${(cfg.autoplayImageSize ?? 70) / 2}%, ${(cfg.autoplayImageSize ?? 70) / 2}%)` }}
-                >↘</button>
-              )}
+                  className="absolute z-[5] h-3.5 w-3.5 rounded-sm border-2 border-white bg-primary shadow-md cursor-nwse-resize touch-none"
+                  style={{ left: `${cfg.autoplayImageX ?? 50}%`, top: `${cfg.autoplayImageY ?? 50}%`, transform: `translate(${sx * (cfg.autoplayImageSize ?? 70) / 2}%, ${sy * (cfg.autoplayImageSize ?? 70) / 2}%)` }}
+                />
+              ))))}
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
