@@ -5,7 +5,8 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, Responsiv
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingDown, TrendingUp, Radio, MapPin, Monitor, Smartphone, Tablet } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TrendingDown, TrendingUp, Radio, MapPin, Monitor, Smartphone, Tablet, Globe, MousePointerClick, Compass, ChartNoAxesColumn } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -41,7 +42,7 @@ function Dashboard() {
       if (error) throw error;
       return data as unknown as {
         active_count: number; playing_count: number;
-        viewers: { session_id: string; viewer_id: string; position: number; is_playing: boolean; last_seen_at: string; country: string | null; region: string | null; city: string | null; device_type: string | null; referrer: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null }[];
+        viewers: { session_id: string; viewer_id: string; position: number; is_playing: boolean; last_seen_at: string; country: string | null; region: string | null; city: string | null; device_type: string | null; browser?: string | null; referrer: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null }[];
         geo: { country: string; region: string; city: string; viewers: number }[];
       };
     },
@@ -108,45 +109,86 @@ function Dashboard() {
           <Kpi label="Localizações detectadas" value={String((live?.geo ?? []).filter(g => g.country !== "Desconhecido").length)} sub="País/região/cidade quando disponíveis" />
           <Kpi label="Fontes UTM distintas" value={String(new Set((live?.viewers ?? []).map(v => v.utm_source).filter(Boolean)).size)} sub="Entre as sessões ativas" />
         </div>
-        <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-          <div className="panel overflow-hidden">
-            <div className="border-b border-border p-4"><h3 className="font-semibold">Espectadores neste momento</h3><p className="mt-1 text-xs text-muted-foreground">Identificadores anônimos de sessão, sem exibir dados pessoais.</p></div>
-            {!live?.viewers?.length ? <p className="p-6 text-sm text-muted-foreground">Nenhum espectador detectado agora. Abra a VSL em outra guia para validar.</p> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-secondary/50 text-xs text-muted-foreground"><tr><th className="p-3">Sessão</th><th className="p-3">Status</th><th className="p-3">Posição</th><th className="p-3">Localização</th><th className="p-3">Dispositivo</th><th className="p-3">Origem / UTM</th></tr></thead>
-                  <tbody>{live.viewers.map(v => {
-                    const Device = v.device_type === "Mobile" ? Smartphone : v.device_type === "Tablet" ? Tablet : Monitor;
-                    const location = [v.city, v.region, v.country].filter(Boolean).join(", ") || "Localização indisponível";
-                    const source = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / ") || v.referrer || "Direto / desconhecido";
-                    return <tr key={v.session_id} className="border-t border-border">
-                      <td className="p-3 font-mono text-xs">{v.viewer_id}</td>
-                      <td className="p-3"><span className={v.is_playing ? "text-emerald-600" : "text-muted-foreground"}>{v.is_playing ? "● Assistindo" : "○ Pausado/aberto"}</span></td>
-                      <td className="p-3 tabular-nums">{fmtTime(Number(v.position) || 0)}</td>
-                      <td className="p-3"><span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />{location}</span></td>
-                      <td className="p-3"><span className="flex items-center gap-1"><Device className="h-3.5 w-3.5 text-muted-foreground" />{v.device_type || "Desconhecido"}</span></td>
-                      <td className="max-w-48 truncate p-3 text-xs text-muted-foreground" title={source}>{source}</td>
-                    </tr>;
-                  })}</tbody>
-                </table>
+        <div className="panel overflow-hidden">
+          <div className="border-b border-border p-4">
+            <h3 className="font-semibold">Espectadores neste momento</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Veja os dados agregados dos espectadores ativos, sem informações desnecessárias por sessão.</p>
+          </div>
+          <Tabs defaultValue="retencao" className="w-full">
+            <div className="overflow-x-auto border-b border-border px-3">
+              <TabsList className="h-auto min-w-max bg-transparent p-0">
+                <TabsTrigger value="retencao" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><ChartNoAxesColumn className="h-4 w-4" />Retenção geral</TabsTrigger>
+                <TabsTrigger value="paises" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Globe className="h-4 w-4" />Países</TabsTrigger>
+                <TabsTrigger value="origem" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><MousePointerClick className="h-4 w-4" />Origem</TabsTrigger>
+                <TabsTrigger value="navegadores" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Compass className="h-4 w-4" />Navegadores</TabsTrigger>
+                <TabsTrigger value="dispositivos" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Monitor className="h-4 w-4" />Dispositivos</TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="retencao" className="m-0 p-4">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><h4 className="font-medium">Posição atual no vídeo</h4><p className="text-xs text-muted-foreground">Distribuição dos espectadores ativos por trecho da VSL.</p></div><span className="text-sm text-muted-foreground">{live?.active_count ?? 0} espectadores</span></div>
+              <div className="space-y-4">
+                {[
+                  { label: "0–25% do vídeo", min: 0, max: 25 },
+                  { label: "25–50% do vídeo", min: 25, max: 50 },
+                  { label: "50–75% do vídeo", min: 50, max: 75 },
+                  { label: "75–100% do vídeo", min: 75, max: 100 },
+                ].map((bucket) => {
+                  const duration = Number(video?.duration_seconds ?? 0);
+                  const viewers = (live?.viewers ?? []).filter(v => {
+                    const p = duration > 0 ? (Number(v.position) / duration) * 100 : 0;
+                    return p >= bucket.min && (p < bucket.max || bucket.max === 100 && p <= 100);
+                  }).length;
+                  const total = live?.active_count ?? 0;
+                  return <div key={bucket.label}><div className="mb-1.5 flex justify-between gap-3 text-sm"><span>{bucket.label}</span><span className="tabular-nums text-muted-foreground">{viewers} ({total ? (viewers / total * 100).toFixed(0) : 0}%)</span></div><div className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary transition-all" style={{ width: total ? `${viewers / total * 100}%` : "0%" }} /></div></div>;
+                })}
               </div>
-            )}
-          </div>
-          <div className="panel">
-            <div className="border-b border-border p-4"><h3 className="flex items-center gap-2 font-semibold"><MapPin className="h-4 w-4" />Geolocalização ao vivo</h3><p className="mt-1 text-xs text-muted-foreground">Estimativa baseada nos cabeçalhos de geolocalização do servidor/CDN.</p></div>
-            {!live?.geo?.length ? <p className="p-6 text-sm text-muted-foreground">Aguardando sessões. País, cidade e região dependem do provedor de hospedagem enviar esses dados.</p> : <div className="space-y-1 p-3">
-              {live.geo.map((g, i) => <div key={g.country + g.region + g.city + i} className="rounded-md p-2 hover:bg-secondary/50">
-                <div className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-medium">{[g.city, g.region, g.country].filter(Boolean).join(", ") || "Localização indisponível"}</span><span className="tabular-nums">{g.viewers}</span></div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, g.viewers / Math.max(1, live.active_count) * 100)}%` }} /></div>
-              </div>)}
-            </div>}
-          </div>
+              {!live?.viewers?.length && <p className="pt-4 text-sm text-muted-foreground">Nenhum espectador ativo no momento. Abra uma VSL em outra aba para testar.</p>}
+            </TabsContent>
+            <TabsContent value="paises" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.country || "Desconhecido")} total={live?.active_count ?? 0} empty="Os países aparecerão quando houver espectadores ativos e o servidor disponibilizar a localização." />
+            </TabsContent>
+            <TabsContent value="origem" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => {
+                const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / ");
+                if (utm) return utm;
+                if (!v.referrer) return "Direto / desconhecido";
+                try { return new URL(v.referrer).hostname; } catch { return v.referrer; }
+              })} total={live?.active_count ?? 0} empty="As origens aparecerão conforme os espectadores acessarem a VSL." />
+            </TabsContent>
+            <TabsContent value="navegadores" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Os navegadores aparecerão quando o endpoint disponibilizar essa informação para cada sessão." />
+            </TabsContent>
+            <TabsContent value="dispositivos" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Os dispositivos aparecerão conforme houver espectadores ativos." />
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
       {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} />}
     </div>
   );
+}
+
+type LiveBreakdownItem = { label: string; count: number };
+
+function aggregateLive<T extends { }>(viewers: T[], getLabel: (viewer: T) => string): LiveBreakdownItem[] {
+  const counts = new Map<string, number>();
+  viewers.forEach(viewer => {
+    const label = getLabel(viewer).trim() || "Desconhecido";
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  });
+  return [...counts.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
+}
+
+function LiveBreakdown({ items, total, empty }: { items: LiveBreakdownItem[]; total: number; empty: string }) {
+  if (!items.length) return <p className="py-6 text-sm text-muted-foreground">{empty}</p>;
+  return <div className="space-y-4">{items.map(item => (
+    <div key={item.label}>
+      <div className="mb-1.5 flex justify-between gap-3 text-sm"><span className="truncate">{item.label}</span><span className="shrink-0 tabular-nums text-muted-foreground">{item.count} ({total ? (item.count / total * 100).toFixed(0) : 0}%)</span></div>
+      <div className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary transition-all" style={{ width: total ? `${item.count / total * 100}%` : "0%" }} /></div>
+    </div>
+  ))}</div>;
 }
 
 function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
