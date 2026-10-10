@@ -1,5 +1,5 @@
 export type MiniHook = { at: number; text: string; dur: number };
-export type HeadlineSegment = { text: string; color?: string; size?: number; bold?: boolean; underline?: boolean; italic?: boolean };
+export type HeadlineSegment = { text: string; color?: string; backgroundColor?: string; size?: number; bold?: boolean; underline?: boolean; italic?: boolean; strike?: boolean };
 
 export type PlayerSettings = {
   // Estilo
@@ -28,7 +28,15 @@ export type PlayerSettings = {
   headlineImageUrl: string;
   headlineText: string;
   headlineColor: string;
-  headlineAlign: "left" | "center" | "right";
+  headlineAlign: "left" | "center" | "right" | "justify";
+  headlineFontFamily: string;
+  headlineFontWeight: number;
+  headlineLineHeight: number;
+  headlineLetterSpacing: number;
+  headlineTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+  headlineBackgroundColor: string;
+  headlineWidth: number;
+  headlinePadding: number;
   headlineFontSize: number;
   headlineBold: boolean;
   headlineItalic: boolean;
@@ -92,6 +100,14 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   headlineText: "Assista até o final — o melhor vem depois",
   headlineColor: "#ffffff",
   headlineAlign: "center",
+  headlineFontFamily: "Inter, Arial, sans-serif",
+  headlineFontWeight: 700,
+  headlineLineHeight: 1.2,
+  headlineLetterSpacing: 0,
+  headlineTransform: "none",
+  headlineBackgroundColor: "transparent",
+  headlineWidth: 100,
+  headlinePadding: 12,
   headlineFontSize: 24,
   headlineBold: true,
   headlineItalic: false,
