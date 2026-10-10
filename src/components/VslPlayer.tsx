@@ -102,7 +102,7 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
     setCur(t);
     if (Number.isFinite(v.duration) && v.duration > 0) {
       const p = Math.min(1, Math.max(0, t / v.duration));
-      setBar((cfg.fastBar ? 1 - Math.pow(1 - p, 32) : p) * 100);
+      setBar((cfg.fastBar ? 1 - Math.pow(1 - p, Math.max(1, cfg.barAccel || 1)) : p) * 100);
     }
     if (started.current && !resetting.current) {
       maxWatched.current = Math.max(maxWatched.current, t);
@@ -188,7 +188,8 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
             if (v.currentTime > maxWatched.current + 1) { internalSeek.current = true; v.currentTime = maxWatched.current; }
           }}
           onSeeked={() => { internalSeek.current = false; T()?.onTime(el().currentTime, el().playbackRate); update(); }}
-          onRateChange={() => { if (cfg.lockSpeed && el().playbackRate !== 1) el().playbackRate = 1; }}
+          onPlay={() => { const r = cfg.turbo ? cfg.turboSpeed || 1 : 1; if (el().playbackRate !== r) el().playbackRate = r; }}
+          onRateChange={() => { const r = cfg.turbo ? cfg.turboSpeed || 1 : 1; if (cfg.lockSpeed && el().playbackRate !== r) el().playbackRate = r; }}
           onTimeUpdate={() => { T()?.onTime(el().currentTime, el().playbackRate); update(); }}
         >
           {cfg.captions && cfg.captionsUrl && <track kind="captions" src={cfg.captionsUrl} srcLang="pt" label="Legendas" default />}
@@ -218,8 +219,8 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
         {overlay && (
           <button aria-label="Toque para ouvir" onClick={() => start(0)} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
-            {video.thumbnail_url && cfg.autoplay && (
-              <img src={video.thumbnail_url} alt="Toque para ouvir" className="pointer-events-none block h-auto max-h-[70%] w-[70%] max-w-[400px] object-contain" />
+            {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
+              <img src={cfg.autoplayImage || video.thumbnail_url!} alt="Toque para ouvir" className="pointer-events-none block h-auto max-h-[70%] w-[70%] max-w-[400px] object-contain" />
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
