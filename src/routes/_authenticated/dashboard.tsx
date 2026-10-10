@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -225,33 +225,32 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
   }, [a]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
-  // Posição ao vivo: acompanha somente espectadores cuja reprodução está ativa.
-  // Se todos pausarem ou saírem, o marcador para no último ponto recebido.
-  const livePlaying = (live?.viewers ?? []).filter(v => v.is_playing);
-  const livePosition = livePlaying.length
-    ? livePlaying.reduce((sum, v) => sum + Number(v.position || 0), 0) / livePlaying.length
-    : null;
-  const [liveCursor, setLiveCursor] = useState<number | null>(null);
-  const [liveCursorRunning, setLiveCursorRunning] = useState(false);
-  const livePositionRef = useRef<number | null>(null);
-  const liveUpdatedAtRef = useRef<number>(Date.now());
+  // Cada espectador ativo avança individualmente no eixo do tempo entre atualizações do servidor.
+  const liveViewers = (live?.viewers ?? []).filter(v => v.is_playing);
+  const [liveTick, setLiveTick] = useState(() => Date.now());
 
-  // Interpola suavemente entre heartbeats do servidor. Pausa/saída congela o traço.
   useEffect(() => {
-    if (livePosition == null) {
-      setLiveCursorRunning(false);
-      return;
-    }
-    livePositionRef.current = livePosition;
-    liveUpdatedAtRef.current = Date.now();
-    setLiveCursor(livePosition);
-    setLiveCursorRunning(true);
-    const timer = window.setInterval(() => {
-      const elapsed = (Date.now() - liveUpdatedAtRef.current) / 1000;
-      setLiveCursor((livePositionRef.current ?? livePosition) + elapsed);
-    }, 100);
+    const timer = window.setInterval(() => setLiveTick(Date.now()), 250);
     return () => window.clearInterval(timer);
-  }, [livePosition, livePlaying.length]);
+  }, []);
+
+  const liveMarkers = liveViewers.map(viewer => {
+    const elapsed = Math.max(0, Math.min(5, (liveTick - new Date(viewer.last_seen_at).getTime()) / 1000));
+    const position = Math.max(0, Math.min(a.duration, Number(viewer.position || 0) + elapsed));
+    let retention = series[0]?.r ?? 0;
+    for (let i = 0; i < series.length; i++) {
+      const point = series[i]!;
+      if (point.t > position) {
+        const previous = series[Math.max(0, i - 1)]!;
+        const span = point.t - previous.t;
+        const ratio = span > 0 ? (position - previous.t) / span : 0;
+        retention = previous.r + (point.r - previous.r) * Math.max(0, Math.min(1, ratio));
+        break;
+      }
+      retention = point.r;
+    }
+    return { id: viewer.session_id, position, retention };
+  });
 
   const changes = useMemo(() => {
     const step = Math.max(1, Math.round(series.length / 60)); // ~60 windows
@@ -364,13 +363,13 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
               {changes.drops.slice(0, 3).map((d) => <ReferenceLine key={d.to} x={d.to} stroke="var(--destructive)" strokeDasharray="2 4" />)}
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              {liveCursor != null && <ReferenceLine x={liveCursor} stroke="var(--chart-3)" strokeWidth={2} strokeDasharray={liveCursorRunning ? undefined : "4 4"} label={{ value: liveCursorRunning ? "Ao vivo" : "Pausado", fill: "var(--chart-3)", fontSize: 11, position: "insideTopLeft" }} />}
+              {liveMarkers.map((marker, index) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={5} fill="var(--chart-3)" stroke="var(--background)" strokeWidth={1.5} isFront label={index === 0 ? { value: `${liveMarkers.length} ao vivo`, fill: "var(--chart-3)", fontSize: 11, position: "top" } : undefined} />)}
               <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Linha cinza: posição do player de análise. Linha colorida: posição média dos espectadores que estão assistindo agora; ela para quando todos pausam ou saem e volta a andar quando retomam.</p>
+        <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--chart-3)]" /> Cada ponto colorido representa uma pessoa assistindo agora e avança pelo tempo do vídeo. Total ao vivo: {liveMarkers.length}.</p>
         <div className="mt-4 grid grid-cols-5 gap-2">
           {["10", "25", "50", "75", "100"].map((k) => (
             <div key={k} className="rounded-md bg-secondary p-3 text-center">
