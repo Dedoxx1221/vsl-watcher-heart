@@ -35,8 +35,8 @@ function Dashboard() {
   const { data: live } = useQuery({
     queryKey: ["live-vsl-analytics", videoId],
     enabled: !!videoId,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
+    refetchInterval: 10000,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_live_vsl_analytics", { _video_id: videoId! });
       if (error) throw error;
@@ -51,7 +51,7 @@ function Dashboard() {
   const { data: a, isLoading } = useQuery({
     queryKey: ["analytics", videoId, period, campaign],
     enabled: !!videoId,
-    refetchInterval: 15000,
+    refetchInterval: 30000,
     queryFn: async () => {
       const from = period === "all" ? new Date(0) : new Date(Date.now() - Number(period) * 86400000);
       if (period === "1") from.setHours(0, 0, 0, 0);
