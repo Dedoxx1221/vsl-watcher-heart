@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { property: "og:description", content: "Retenção, abandono e funil da sua VSL." },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>): { v?: string } => (typeof s.v === "string" ? { v: s.v } : {}),
+  validateSearch: (s: Record<string, unknown>): { v?: string } => (typeof s['v'] === "string" ? { v: s['v'] } : {}),
   loader: ({ context }) => context.queryClient.ensureQueryData(videosQuery),
   component: Dashboard,
 });
@@ -59,7 +59,7 @@ function Dashboard() {
           <h1 className="text-3xl font-bold">{video?.name}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Select value={videoId} onValueChange={setVideoId}>
+          <Select value={videoId ?? ""} onValueChange={setVideoId}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
           </Select>
