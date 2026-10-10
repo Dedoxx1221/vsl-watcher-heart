@@ -467,6 +467,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
             </div>
           ))}
         </div>
+        </div>
       </div>
     </>
   );
