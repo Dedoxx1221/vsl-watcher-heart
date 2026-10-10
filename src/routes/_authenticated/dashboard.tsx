@@ -5,8 +5,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, Responsiv
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Radio, MapPin, Monitor, Smartphone, Tablet, Globe, MousePointerClick, Compass, ChartNoAxesColumn } from "lucide-react";
+import { Radio, MapPin, Globe, ChartNoAxesColumn } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -372,9 +371,10 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
         </div>
       </div>
 
-      <div className="grid gap-4">
-        <div className="panel p-5">
-          <h2 className="mb-3 text-lg font-semibold">Funil de conversão</h2>
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="panel p-5 md:p-6">
+          <h2 className="mb-1 text-lg font-semibold">Funil de conversão</h2>
+          <p className="mb-4 text-xs text-muted-foreground">Veja quantas pessoas avançam de uma etapa para a próxima.</p>
           <div className="space-y-3">
             {funnel.map((f, i) => (
               <div key={f.name}>
@@ -389,8 +389,8 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="panel p-5 lg:col-span-2">
+      <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+        <div className="panel p-5 md:p-6">
           <h2 className="mb-3 text-lg font-semibold">Por dia</h2>
           <div className="h-56">
             <ResponsiveContainer>
@@ -406,8 +406,9 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="panel p-5">
-          <h2 className="mb-3 text-lg font-semibold">Eventos registrados</h2>
+        <div className="panel p-5 md:p-6">
+          <h2 className="mb-1 text-lg font-semibold">Eventos registrados</h2>
+          <p className="mb-3 text-xs text-muted-foreground">Ações detectadas dentro do player.</p>
           {([
             ["Play", "play"], ["Pausa", "pause"], ["Retomada", "resume"], ["Avanço", "seek_forward"],
             ["Retorno", "seek_backward"], ["Abandono", "abandon"], ["Chegada ao CTA", "cta_reached"],
