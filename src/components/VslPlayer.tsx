@@ -169,7 +169,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           : [{ text: cfg.headlineText }];
         return (
           <div className="px-3 py-3 leading-snug" style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontWeight: cfg.headlineBold ? 700 : 400, textDecoration: cfg.headlineUnderline ? "underline" : "none", overflowWrap: "anywhere" }}>
-            {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: segment.underline === undefined ? undefined : segment.underline ? "underline" : "none", whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
+            {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: segment.underline === undefined ? undefined : segment.underline ? "underline" : "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
           </div>
         );
       })()}
