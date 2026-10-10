@@ -360,7 +360,6 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
                   );
                 }}
               />
-              {changes.drops.slice(0, 3).map((d) => <ReferenceLine key={d.to} x={d.to} stroke="var(--destructive)" strokeDasharray="2 4" />)}
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
               {liveMarkers.map((marker, index) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={5} fill="var(--chart-3)" stroke="var(--background)" strokeWidth={1.5} isFront label={index === 0 ? { value: `${liveMarkers.length} ao vivo`, fill: "var(--chart-3)", fontSize: 11, position: "top" } : undefined} />)}
