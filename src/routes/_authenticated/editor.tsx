@@ -326,15 +326,17 @@ function Editor() {
     if (!video) return;
     const origin = window.location.origin;
     const id = video.id;
-    const ratio = s.aspect === "9:16" ? "9 / 16" : "16 / 9";
-    const code = `<div style="position:relative;width:100%;max-width:960px;margin:0 auto;aspect-ratio:${ratio};background:#111;overflow:hidden">
+    const vertical = s.aspect === "9:16";
+    const ratio = vertical ? "9 / 16" : "16 / 9";
+    const maxWidth = vertical ? "420px" : "960px";
+    const code = `<div style="position:relative;width:100%;max-width:${maxWidth};margin:0 auto;aspect-ratio:${ratio};background:transparent;overflow:hidden">
   <iframe
     src="${origin}/embed/${id}"
     title="Vexora video player"
     loading="eager"
     allow="autoplay; fullscreen; picture-in-picture"
     allowfullscreen
-    style="position:absolute;inset:0;width:100%;height:100%;border:0;display:block"
+    style="position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent"
   ></iframe>
 </div>`;
     try {
