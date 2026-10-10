@@ -1,5 +1,5 @@
 export type MiniHook = { at: number; text: string; dur: number };
-export type HeadlineSegment = { text: string; color?: string; size?: number; bold?: boolean; underline?: boolean };
+export type HeadlineSegment = { text: string; color?: string; size?: number; bold?: boolean; underline?: boolean; italic?: boolean };
 
 export type PlayerSettings = {
   // Estilo
