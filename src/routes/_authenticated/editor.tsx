@@ -126,11 +126,12 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
   };
   for (const child of Array.from(root.childNodes)) walk(child);
   while (result.length && result[result.length - 1]!.text === "\n") result.pop();
-  return result.map((part) => ({
-    ...part,
-    ...(part.color === defaultColor ? { color: undefined } : {}),
-    ...(part.size === defaultSize ? { size: undefined } : {}),
-  }));
+  return result.map((part) => {
+    const out = { ...part };
+    if (out.color === defaultColor) delete out.color;
+    if (out.size === defaultSize) delete out.size;
+    return out;
+  });
 }
 
 function getCaretTextOffset(root: HTMLElement, range: Range): number {
