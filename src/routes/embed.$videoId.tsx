@@ -63,6 +63,37 @@ function Embed() {
   });
   if (isLoading) return <div className="fixed inset-0 overflow-hidden bg-transparent" />;
   if (!video) return <div className="fixed inset-0 overflow-hidden bg-transparent p-6 text-muted-foreground">Vídeo não encontrado.</div>;
-  return <div className="fixed inset-0 overflow-hidden bg-transparent"><VslPlayer video={video} /></div>;
+  return (
+    <>
+      <style>{`
+        html, body, #root {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+        }
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          min-height: 0 !important;
+          height: auto !important;
+          overflow: hidden !important;
+        }
+        #root {
+          width: 100% !important;
+          min-height: 0 !important;
+          height: auto !important;
+          padding: 0 !important;
+        }
+      `}</style>
+      <div
+        id="vexora-embed-root"
+        className="relative w-full min-w-0 max-w-full overflow-visible bg-transparent"
+        style={{ background: "transparent", backgroundColor: "transparent", backgroundImage: "none", boxShadow: "none" }}
+      >
+        <VslPlayer video={video} />
+      </div>
+    </>
+  );
 }
 
