@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/editor")({
+  validateSearch: (search: Record<string, unknown>) => ({ v: typeof search.v === "string" ? search.v : undefined }),
   head: () => ({
     meta: [
       { title: "Editor do player — Retina" },
@@ -39,9 +40,10 @@ function parseTime(s: string): number | null {
 type BoolKey = { [K in keyof PlayerSettings]-?: PlayerSettings[K] extends boolean | undefined ? K : never }[keyof PlayerSettings] & keyof PlayerSettings;
 
 function Editor() {
+  const search = Route.useSearch();
   const { data: videos } = useSuspenseQuery(videosQuery);
   const qc = useQueryClient();
-  const [videoId, setVideoId] = useState(videos[0]?.id ?? "");
+  const [videoId, setVideoId] = useState(() => search.v && videos.some((v) => v.id === search.v) ? search.v : (videos[0]?.id ?? ""));
   const video = videos.find((v) => v.id === videoId);
   const [s, setS] = useState<PlayerSettings>(DEFAULT_SETTINGS);
   const [offer, setOffer] = useState("");
@@ -49,6 +51,10 @@ function Editor() {
   const [saving, setSaving] = useState(false);
   const [previewCta, setPreviewCta] = useState(true);
   const [open, setOpen] = useState<string | null>("style");
+
+  useEffect(() => {
+    if (search.v && videos.some((v) => v.id === search.v)) setVideoId(search.v);
+  }, [search.v, videos]);
 
   useEffect(() => {
     if (!video) return;
