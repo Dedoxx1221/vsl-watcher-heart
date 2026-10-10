@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ChevronDown, Copy, Download, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +70,91 @@ function ImageUrlPreview({ url, title, aspect }: { url: string; title: string; a
   );
 }
 
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function headlineSegmentsToHtml(segments: HeadlineSegment[], text: string, color: string, size: number, bold: boolean, italic: boolean, underline: boolean): string {
+  const parts = segments.length && segments.map((part) => part.text).join("") === text ? segments : [{ text }];
+  return parts.map((part) => {
+    const styles = [
+      `color:${part.color || color}`,
+      `font-size:${part.size || size}px`,
+      `font-weight:${(part.bold ?? bold) ? 700 : 400}`,
+      `font-style:${(part.italic ?? italic) ? "italic" : "normal"}`,
+      `text-decoration:${(part.underline ?? underline) ? "underline" : "none"}`,
+    ].join(";");
+    return `<span style="${styles}">${escapeHtml(part.text).replace(/\n/g, "<br>")}</span>`;
+  }).join("");
+}
+
+function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: number): HeadlineSegment[] {
+  const result: HeadlineSegment[] = [];
+  const walk = (node: Node, inherited: Partial<HeadlineSegment> = {}) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent || "";
+      if (!text) return;
+      const prev = result[result.length - 1];
+      const same = prev && prev.color === inherited.color && prev.size === inherited.size && prev.bold === inherited.bold && prev.italic === inherited.italic && prev.underline === inherited.underline;
+      if (same) prev.text += text;
+      else result.push({ text, ...inherited });
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const el = node as HTMLElement;
+    const tag = el.tagName.toLowerCase();
+    const style = el.style;
+    const next: Partial<HeadlineSegment> = { ...inherited };
+    if (style.color) next.color = style.color;
+    if (style.fontSize?.endsWith("px")) next.size = Number.parseFloat(style.fontSize);
+    if (style.fontWeight) next.bold = style.fontWeight === "bold" || Number(style.fontWeight) >= 600;
+    if (style.fontStyle) next.italic = style.fontStyle === "italic";
+    if (style.textDecoration || style.textDecorationLine) next.underline = /underline/.test(style.textDecoration + " " + style.textDecorationLine);
+    if (tag === "b" || tag === "strong") next.bold = true;
+    if (tag === "i" || tag === "em") next.italic = true;
+    if (tag === "u") next.underline = true;
+    if (tag === "br") { result.push({ text: "\n" }); return; }
+    for (const child of Array.from(node.childNodes)) walk(child, next);
+    if ((tag === "div" || tag === "p") && node.nextSibling) result.push({ text: "\n" });
+  };
+  for (const child of Array.from(root.childNodes)) walk(child);
+  while (result.length && result[result.length - 1].text === "\n") result.pop();
+  return result.map((part) => ({
+    ...part,
+    ...(part.color === defaultColor ? { color: undefined } : {}),
+    ...(part.size === defaultSize ? { size: undefined } : {}),
+  }));
+}
+
+function getCaretTextOffset(root: HTMLElement, range: Range): number {
+  const before = range.cloneRange();
+  before.selectNodeContents(root);
+  before.setEnd(range.endContainer, range.endOffset);
+  return before.toString().length;
+}
+
+function restoreCaretTextOffset(root: HTMLElement, offset: number): void {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let remaining = Math.max(0, offset);
+  let node = walker.nextNode();
+  while (node) {
+    const length = node.textContent?.length ?? 0;
+    if (remaining <= length) {
+      const range = document.createRange();
+      range.setStart(node, remaining);
+      range.collapse(true);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      return;
+    }
+    remaining -= length;
+    node = walker.nextNode();
+  }
+  root.focus();
+}
+
 function parseTime(s: string): number | null {
   if (!s.trim()) return null;
   const parts = s.split(":").map(Number);
@@ -94,6 +179,8 @@ function Editor() {
   const [headlineSelection, setHeadlineSelection] = useState({ start: 0, end: 0 });
   const [headlineWordColor, setHeadlineWordColor] = useState("#ffdf00");
   const [headlineWordSize, setHeadlineWordSize] = useState(32);
+  const headlineEditorRef = useRef<HTMLDivElement>(null);
+  const skipHeadlineDomSync = useRef(false);
 
   useEffect(() => {
     if (search.v && videos.some((v) => v.id === search.v)) setVideoId(search.v);
@@ -101,12 +188,26 @@ function Editor() {
 
   useEffect(() => {
     if (!video) return;
-    setS(parseSettings(video.player_settings));
+    const loadedSettings = parseSettings(video.player_settings);
+    setS(loadedSettings);
+    if (headlineEditorRef.current) headlineEditorRef.current.innerHTML = headlineSegmentsToHtml(loadedSettings.headlineSegments, loadedSettings.headlineText, loadedSettings.headlineColor, loadedSettings.headlineFontSize, loadedSettings.headlineBold, loadedSettings.headlineItalic, loadedSettings.headlineUnderline);
     setOffer(video.offer_time_seconds != null ? fmtTime(video.offer_time_seconds) : "");
     setCheckout(video.checkout_url ?? "");
   }, [video]);
 
   const set = <K extends keyof PlayerSettings>(k: K, v: PlayerSettings[K]) => setS((p) => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    if (skipHeadlineDomSync.current) { skipHeadlineDomSync.current = false; return; }
+    if (headlineEditorRef.current && open === "headline") {
+      const el = headlineEditorRef.current;
+      const selection = window.getSelection();
+      const active = document.activeElement === el;
+      const offset = active && selection?.rangeCount ? getCaretTextOffset(el, selection.getRangeAt(0).cloneRange()) : null;
+      el.innerHTML = headlineSegmentsToHtml(s.headlineSegments, s.headlineText, s.headlineColor, s.headlineFontSize, s.headlineBold, s.headlineItalic, s.headlineUnderline);
+      if (active && offset != null) restoreCaretTextOffset(el, offset);
+    }
+  }, [s.headlineSegments, s.headlineText, s.headlineColor, s.headlineFontSize, s.headlineBold, s.headlineItalic, s.headlineUnderline, open]);
 
   function applyHeadlineStyle(patch: Partial<HeadlineSegment>) {
     const text = s.headlineText;
@@ -345,14 +446,48 @@ function Editor() {
             {open === "headline" && <div className="divide-y divide-border px-4 pb-4">
             <div className="space-y-2 py-3">
               <Label>Texto da headline</Label>
-              <textarea
-                value={s.headlineText}
-                onChange={(e) => { set("headlineText", e.target.value); set("headlineSegments", []); }}
-                onSelect={(e) => setHeadlineSelection({ start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd })}
-                onClick={(e) => setHeadlineSelection({ start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd })}
-                rows={3}
-                placeholder="Digite sua headline. Selecione uma palavra ou trecho para formatar individualmente."
-                className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              <div
+                ref={headlineEditorRef}
+                contentEditable
+                suppressContentEditableWarning
+                role="textbox"
+                aria-multiline="true"
+                onInput={(e) => {
+                  const el = e.currentTarget;
+                  const parsed = parseHeadlineDom(el, s.headlineColor, s.headlineFontSize);
+                  skipHeadlineDomSync.current = true;
+                  set("headlineText", parsed.map((part) => part.text).join(""));
+                  set("headlineSegments", parsed);
+                  const selection = window.getSelection();
+                  if (selection?.rangeCount) {
+                    const range = selection.getRangeAt(0);
+                    setHeadlineSelection({ start: getCaretTextOffset(el, range.cloneRange()), end: getCaretTextOffset(el, range.cloneRange()) });
+                  }
+                }}
+                onMouseUp={(e) => {
+                  const el = e.currentTarget;
+                  const selection = window.getSelection();
+                  if (selection?.rangeCount && el.contains(selection.anchorNode)) {
+                    const range = selection.getRangeAt(0).cloneRange();
+                    const end = getCaretTextOffset(el, range);
+                    range.collapse(true);
+                    const start = getCaretTextOffset(el, range);
+                    setHeadlineSelection({ start, end });
+                  }
+                }}
+                onKeyUp={(e) => {
+                  const el = e.currentTarget;
+                  const selection = window.getSelection();
+                  if (selection?.rangeCount && el.contains(selection.anchorNode)) {
+                    const range = selection.getRangeAt(0).cloneRange();
+                    const end = getCaretTextOffset(el, range);
+                    range.collapse(true);
+                    const start = getCaretTextOffset(el, range);
+                    setHeadlineSelection({ start, end });
+                  }
+                }}
+                data-placeholder="Digite ou cole sua headline. A formatação colorida copiada também será preservada."
+                className="min-h-24 w-full whitespace-pre-wrap rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground"
               />
               <p className="text-xs text-muted-foreground">Para formatar palavras diferentes, selecione o trecho no campo acima e aplique a cor, tamanho ou estilo desejado.</p>
             </div>
