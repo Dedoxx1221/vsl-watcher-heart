@@ -352,6 +352,7 @@ function Editor() {
             </div>
             <div className="flex flex-wrap gap-2 py-2">
               <Button type="button" size="sm" variant={s.headlineBold ? "default" : "outline"} onClick={() => set("headlineBold", !s.headlineBold)}><span className="font-bold">B</span> Negrito geral</Button>
+              <Button type="button" size="sm" variant={s.headlineItalic ? "default" : "outline"} onClick={() => set("headlineItalic", !s.headlineItalic)}><span className="italic">I</span> Itálico geral</Button>
               <Button type="button" size="sm" variant={s.headlineUnderline ? "default" : "outline"} onClick={() => set("headlineUnderline", !s.headlineUnderline)}><span className="underline">U</span> Sublinhado geral</Button>
             </div>
             <div className="space-y-3 rounded-lg border border-border p-3">
