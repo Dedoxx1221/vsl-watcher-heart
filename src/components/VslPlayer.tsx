@@ -162,24 +162,24 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   if (blocked) return null;
 
   return (
-    <div ref={wrap} style={style} className={"mx-auto w-full bg-background " + (cfg.aspect === "9:16" ? "max-w-[480px]" : "")}>
+    <div ref={wrap} style={style} className={"box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-background " + (cfg.aspect === "9:16" ? "max-w-[480px]" : "")}>
       {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
-        <div className="px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign }}>
+        <div className="box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign }}>
           {cfg.headlineUseImage ? (
-            <img src={cfg.headlineImageUrl} alt="Headline" loading="eager" className="block h-auto max-w-full" style={{ maxHeight: "40vh", objectFit: "contain", marginLeft: cfg.headlineAlign === "left" ? 0 : "auto", marginRight: cfg.headlineAlign === "right" ? 0 : "auto" }} />
+            <img src={cfg.headlineImageUrl} alt="Headline" loading="eager" className="block h-auto max-w-full" style={{ maxHeight: "40vh", objectFit: "contain", boxSizing: "border-box", marginLeft: cfg.headlineAlign === "left" ? 0 : "auto", marginRight: cfg.headlineAlign === "right" ? 0 : "auto" }} />
           ) : (() => {
             const segments = cfg.headlineSegments.length && cfg.headlineSegments.map((segment) => segment.text).join("") === cfg.headlineText
               ? cfg.headlineSegments
               : [{ text: cfg.headlineText }];
             return (
-              <div style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontFamily: cfg.headlineFontFamily, fontWeight: cfg.headlineFontWeight || (cfg.headlineBold ? 700 : 400), fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", lineHeight: cfg.headlineLineHeight, letterSpacing: `${cfg.headlineLetterSpacing}px`, textTransform: cfg.headlineTransform, backgroundColor: cfg.headlineBackgroundColor, width: `${cfg.headlineWidth}%`, padding: `${cfg.headlinePadding}px`, margin: "0 auto", overflowWrap: "anywhere" }}>
+              <div style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontFamily: cfg.headlineFontFamily, fontWeight: cfg.headlineFontWeight || (cfg.headlineBold ? 700 : 400), fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", lineHeight: cfg.headlineLineHeight, letterSpacing: `${cfg.headlineLetterSpacing}px`, textTransform: cfg.headlineTransform, backgroundColor: cfg.headlineBackgroundColor, width: `${Math.min(100, Math.max(30, cfg.headlineWidth || 100))}%`, maxWidth: "100%", boxSizing: "border-box", padding: `${cfg.headlinePadding}px`, margin: "0 auto", overflowWrap: "anywhere" }}>
                 {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, backgroundColor: segment.backgroundColor || undefined, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: [segment.underline ? "underline" : "", segment.strike ? "line-through" : ""].filter(Boolean).join(" ") || "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
               </div>
             );
           })()}
         </div>
       )}
-      <div className={"relative w-full overflow-hidden bg-background leading-none " + (cfg.rounded ? "rounded-xl" : "")}>
+      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-background leading-none " + (cfg.aspect === "9:16" ? "aspect-[9/16] max-w-[480px]" : "aspect-video") + (cfg.rounded ? " rounded-xl" : "")}>
         <video
           ref={ref}
           src={video.video_url}
@@ -192,7 +192,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           poster={video.thumbnail_url ?? undefined}
           disablePictureInPicture
           controlsList="nodownload noplaybackrate noremoteplayback"
-          className={"block h-auto w-full bg-background object-contain " + (cfg.aspect === "9:16" ? "aspect-[9/16]" : "aspect-video")}
+          className="absolute inset-0 block h-full w-full max-w-full bg-background object-contain"
           onClick={togglePause}
           onLoadedMetadata={() => { tracker.current?.setDuration(el().duration); update(); }}
           onDurationChange={update}
