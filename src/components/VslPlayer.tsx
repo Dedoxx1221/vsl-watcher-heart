@@ -57,6 +57,8 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   const [showCta, setShowCta] = useState(!!(preview && cfg.ctaAlways));
   const [query, setQuery] = useState("");
   const [autoplayImageRatio, setAutoplayImageRatio] = useState<number | null>(null);
+  const [imageSelected, setImageSelected] = useState(false);
+  const [imageMoving, setImageMoving] = useState(false);
 
   useEffect(() => {
     if (preview) { ref.current?.pause(); return; }
@@ -222,21 +224,13 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <>
-              <img
-                src={cfg.autoplayImage || video.thumbnail_url!}
-                alt="Toque para ouvir"
-                draggable={false}
-                onLoad={(e) => {
-                  const image = e.currentTarget;
-                  if (image.naturalWidth > 0 && image.naturalHeight > 0) {
-                    setAutoplayImageRatio(image.naturalWidth / image.naturalHeight);
-                  }
-                }}
-                onClick={(e) => { if (preview && onAutoplayImageTransform) e.stopPropagation(); }}
+              <div
+                className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "pointer-events-none")}
+                onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); } }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
-                  e.preventDefault(); e.stopPropagation();
-                  const box = ref.current?.getBoundingClientRect();
-                  if (!box) return;
+                  if ((e.target as HTMLElement).dataset.resizeHandle) return;
+                  e.preventDefault(); e.stopPropagation(); setImageSelected(true); setImageMoving(true);
+                  const box = ref.current?.getBoundingClientRect(); if (!box) return;
                   imageDrag.current = { mode: "move", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
                   e.currentTarget.setPointerCapture(e.pointerId);
                 } : undefined}
@@ -245,71 +239,80 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   e.preventDefault(); e.stopPropagation();
                   const rawX = Math.min(100, Math.max(0, d.x + (e.clientX - d.startX) / d.width * 100));
                   const rawY = Math.min(100, Math.max(0, d.y + (e.clientY - d.startY) / d.height * 100));
-                  const magnet = 4;
-                  const x = Math.abs(rawX - 50) <= magnet ? 50 : rawX;
-                  const y = Math.abs(rawY - 50) <= magnet ? 50 : rawY;
+                  const x = Math.abs(rawX - 50) <= 4 ? 50 : rawX;
+                  const y = Math.abs(rawY - 50) <= 4 ? 50 : rawY;
                   onAutoplayImageTransform({ x, y, size: d.size });
                 } : undefined}
-                onPointerUp={() => { imageDrag.current = null; }}
-                onPointerCancel={() => { imageDrag.current = null; }}
-                className={"absolute max-w-none object-contain " + (preview && onAutoplayImageTransform ? "cursor-move touch-none" : "pointer-events-none")}
+                onPointerUp={() => { imageDrag.current = null; setImageMoving(false); }}
+                onPointerCancel={() => { imageDrag.current = null; setImageMoving(false); }}
                 style={{
                   left: `${Math.min(100, Math.max(0, cfg.autoplayImageX ?? 50))}%`,
                   top: `${Math.min(100, Math.max(0, cfg.autoplayImageY ?? 50))}%`,
                   transform: "translate(-50%, -50%)",
-                  width: `${Math.min(
-                    Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)),
-                    autoplayImageRatio && ref.current
-                      ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio
-                      : 100
-                  )}%`,
+                  width: `${Math.min(Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)), autoplayImageRatio && ref.current ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio : 100)}%`,
                   maxHeight: "95%",
-                  height: "auto",
                   aspectRatio: autoplayImageRatio ? String(autoplayImageRatio) : undefined,
                   touchAction: preview && onAutoplayImageTransform ? "none" : undefined,
-                  pointerEvents: preview && onAutoplayImageTransform ? "auto" : undefined,
+                  outline: imageSelected && preview && onAutoplayImageTransform ? "1px solid #2589ff" : "none",
+                  outlineOffset: "-1px",
                 }}
-              />
-              {preview && onAutoplayImageTransform && ([-1, 1].flatMap((sx) => [-1, 1].map((sy) => (
-                <button
-                  key={`${sx}-${sy}`}
-                  type="button"
-                  aria-label="Redimensionar imagem"
-                  title="Arraste a alça do canto para aumentar ou diminuir, como no Paint"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                  onPointerDown={(e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    const box = ref.current?.getBoundingClientRect(); if (!box) return;
-                    imageDrag.current = { mode: "resize", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
-                    e.currentTarget.setPointerCapture(e.pointerId);
+              >
+                <img
+                  src={cfg.autoplayImage || video.thumbnail_url!}
+                  alt="Toque para ouvir"
+                  draggable={false}
+                  onLoad={(e) => {
+                    const image = e.currentTarget;
+                    if (image.naturalWidth > 0 && image.naturalHeight > 0) setAutoplayImageRatio(image.naturalWidth / image.naturalHeight);
                   }}
-                  onPointerMove={(e) => {
-                    const d = imageDrag.current; if (!d || d.mode !== "resize") return;
-                    e.preventDefault(); e.stopPropagation();
-                    const delta = (sx * (e.clientX - d.startX) + sy * (e.clientY - d.startY)) / Math.max(1, d.width) * 100;
-                    onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.min(100, Math.max(15, d.size + delta)) });
-                  }}
-                  onPointerUp={() => { imageDrag.current = null; }}
-                  onPointerCancel={() => { imageDrag.current = null; }}
-                  className="absolute z-[5] h-3.5 w-3.5 rounded-sm border-2 border-white bg-primary shadow-md cursor-nwse-resize touch-none"
-                  style={{
-                    left: `${cfg.autoplayImageX ?? 50}%`,
-                    top: `${cfg.autoplayImageY ?? 50}%`,
-                    width: 14,
-                    height: 14,
-                    transform: `translate(${sx * (Math.min(
-                      Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)),
-                      autoplayImageRatio && ref.current
-                        ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio
-                        : 100
-                    ) / 2)}%, ${sy * (autoplayImageRatio ? (Math.min(
-                      Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)),
-                      ref.current ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio : 100
-                    ) / autoplayImageRatio) / 2 : (cfg.autoplayImageSize ?? 70) / 2)}%)`
-                  }}
+                  className="block h-full w-full select-none object-contain"
+                  style={{ pointerEvents: "none" }}
                 />
-              ))))}
-              </>
+                {preview && onAutoplayImageTransform && imageSelected && (
+                  <>
+                    {imageMoving && <>
+                      <div className="pointer-events-none absolute left-1/2 top-[-100vh] h-[200vh] w-px bg-[#2589ff]/80" />
+                      <div className="pointer-events-none absolute left-[-100vw] top-1/2 h-px w-[200vw] bg-[#2589ff]/80" />
+                    </>}
+                    {(["nw","n","ne","e","se","s","sw","w"] as const).map((handle) => {
+                      const horizontal = handle.includes("e") ? 1 : handle.includes("w") ? -1 : 0;
+                      const vertical = handle.includes("s") ? 1 : handle.includes("n") ? -1 : 0;
+                      const cursor = horizontal && vertical ? (horizontal === vertical ? "nwse-resize" : "nesw-resize") : horizontal ? "ew-resize" : "ns-resize";
+                      return <button
+                        key={handle}
+                        type="button"
+                        data-resize-handle="true"
+                        aria-label="Redimensionar imagem"
+                        title="Arraste para redimensionar"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onPointerDown={(e) => {
+                          e.preventDefault(); e.stopPropagation(); setImageSelected(true); setImageMoving(false);
+                          const box = ref.current?.getBoundingClientRect(); if (!box) return;
+                          imageDrag.current = { mode: "resize", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
+                          e.currentTarget.setPointerCapture(e.pointerId);
+                        }}
+                        onPointerMove={(e) => {
+                          const d = imageDrag.current; if (!d || d.mode !== "resize") return;
+                          e.preventDefault(); e.stopPropagation();
+                          const dx = (e.clientX - d.startX) / Math.max(1, d.width) * 100 * horizontal;
+                          const dy = (e.clientY - d.startY) / Math.max(1, d.height) * 100 * vertical * (autoplayImageRatio || 1);
+                          const delta = horizontal && vertical ? (dx + dy) / 2 : horizontal ? dx : dy;
+                          onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.min(100, Math.max(15, d.size + delta)) });
+                        }}
+                        onPointerUp={() => { imageDrag.current = null; }}
+                        onPointerCancel={() => { imageDrag.current = null; }}
+                        className="absolute z-[6] h-3.5 w-3.5 rounded-sm border-2 border-white bg-[#2589ff] shadow-md touch-none"
+                        style={{
+                          left: handle.includes("w") ? 0 : handle.includes("e") ? "100%" : "50%",
+                          top: handle.includes("n") ? 0 : handle.includes("s") ? "100%" : "50%",
+                          transform: "translate(-50%, -50%)",
+                          cursor,
+                        }}
+                      />;
+                    })}
+                  </>
+                )}
+              </div>
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
