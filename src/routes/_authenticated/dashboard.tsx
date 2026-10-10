@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -335,8 +335,17 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
                 cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "4 4" }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;
-                  const point = payload[0]?.payload as { t: number; n: number; r: number } | undefined;
-                  if (!point) return null;
+                  const hovered = payload[0]?.payload as { t?: number; n?: number; r?: number; id?: string; position?: number; retention?: number } | undefined;
+                  if (!hovered) return null;
+                  if (hovered.id) {
+                    return (
+                      <div className="rounded-xl border border-border bg-popover px-3 py-2.5 text-popover-foreground shadow-2xl">
+                        <p className="text-sm font-semibold">{liveMarkers.length === 1 ? "1 pessoa assistindo agora" : `${liveMarkers.length} pessoas assistindo agora`}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Posição na VSL: {fmtTime(Number(hovered.position ?? 0))}</p>
+                      </div>
+                    );
+                  }
+                  const point = hovered as { t: number; n: number; r: number };
                   return (
                     <div className="w-[210px] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
                       <div className="border-b border-border px-3 py-2">
@@ -362,7 +371,7 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
               />
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              {liveMarkers.map((marker, index) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={5} fill="var(--chart-3)" stroke="var(--background)" strokeWidth={1.5} isFront label={index === 0 ? { value: `${liveMarkers.length} ao vivo`, fill: "var(--chart-3)", fontSize: 11, position: "top" } : undefined} />)}
+              {liveMarkers.length > 0 && <Scatter name="Espectadores ao vivo" data={liveMarkers} dataKey="retention" fill="var(--chart-3)" shape={{ r: 5, stroke: "var(--background)", strokeWidth: 1.5 }} isAnimationActive={false} />}
               <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
