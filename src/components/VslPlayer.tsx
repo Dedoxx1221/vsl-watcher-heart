@@ -18,7 +18,7 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
   const maxWatched = useRef(0);
   const [overlay, setOverlay] = useState(true);
   const [bar, setBar] = useState(0);
-  const [showCta, setShowCta] = useState(false);
+  const [showCta, setShowCta] = useState(!!(preview && cfg.ctaAlways));
   const [query, setQuery] = useState("");
 
   useEffect(() => {
