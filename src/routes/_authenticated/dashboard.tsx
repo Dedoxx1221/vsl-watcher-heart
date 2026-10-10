@@ -208,7 +208,7 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
   // Ajuste isotônico decrescente: reduz oscilações de amostras pequenas sem
   // inventar uma queda em cada ponto. A curva exibida nunca sobe, como em players de VSL.
   const series = useMemo(() => {
-    const raw = a.retention.map(([t, n]) => ({ t, n, r: Math.max(0, Math.min(100, pct(n, a.plays))) }));
+    const raw = a.retention.map(([t, n]) => ({ t, r: Math.max(0, Math.min(100, pct(n, a.plays))) }));
     if (raw.length < 3) return raw;
     const blocks: { start: number; end: number; sum: number; weight: number }[] = [];
     raw.forEach((point, i) => {
@@ -341,29 +341,9 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
               <XAxis dataKey="t" type="number" domain={[0, a.duration]} tickFormatter={fmtTime} stroke="var(--muted-foreground)" fontSize={11} />
               <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="var(--muted-foreground)" fontSize={11} />
               <Tooltip
-                cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "4 4" }}
-                content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) return null;
-                  const point = payload[0]?.payload as { t: number; n: number; r: number } | undefined;
-                  if (!point) return null;
-                  return (
-                    <div className="min-w-[190px] rounded-lg border border-border bg-popover px-3 py-2.5 text-popover-foreground shadow-xl">
-                      <p className="mb-2 text-xs font-medium text-muted-foreground">Dados neste ponto</p>
-                      <div className="mb-2 flex items-center justify-between gap-5">
-                        <span className="text-sm text-muted-foreground">Tempo</span>
-                        <span className="num text-sm font-semibold">{fmtTime(Number(label ?? point.t))}</span>
-                      </div>
-                      <div className="mb-2 flex items-center justify-between gap-5">
-                        <span className="text-sm text-muted-foreground">Audiência</span>
-                        <span className="num text-sm font-semibold">{Number(point.n).toLocaleString("pt-BR")} pessoas</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-5 border-t border-border pt-2">
-                        <span className="text-sm text-muted-foreground">Retenção</span>
-                        <span className="num text-sm font-semibold text-primary">{Number(point.r).toFixed(1)}%</span>
-                      </div>
-                    </div>
-                  );
-                }}
+                contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }}
+                labelFormatter={(t) => fmtTime(Number(t))}
+                formatter={(v) => [`${Number(v).toFixed(1)}%`, "Retenção"]}
               />
               {changes.drops.slice(0, 3).map((d) => <ReferenceLine key={d.to} x={d.to} stroke="var(--destructive)" strokeDasharray="2 4" />)}
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
