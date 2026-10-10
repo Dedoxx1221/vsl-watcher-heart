@@ -661,7 +661,7 @@ function Editor() {
         </div>
 
         <div className="min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start">
-          <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-transparent p-3">
+          <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-black p-3">
             <div className="mb-2 flex items-center justify-between">
               <div><p className="text-sm font-medium">Prévia ao vivo</p><p className="text-xs text-muted-foreground">Atualiza enquanto você edita</p></div>
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
