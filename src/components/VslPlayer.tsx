@@ -219,7 +219,18 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
           <button aria-label="Toque para ouvir" onClick={() => start(0)} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
-              <img src={cfg.autoplayImage || video.thumbnail_url!} alt="Toque para ouvir" className="pointer-events-none block h-auto max-h-[70%] w-[70%] max-w-[400px] object-contain" />
+              <img
+                src={cfg.autoplayImage || video.thumbnail_url!}
+                alt="Toque para ouvir"
+                className="pointer-events-none absolute max-w-none object-contain"
+                style={{
+                  left: `${Math.min(100, Math.max(0, cfg.autoplayImageX ?? 50))}%`,
+                  top: `${Math.min(100, Math.max(0, cfg.autoplayImageY ?? 50))}%`,
+                  transform: "translate(-50%, -50%)",
+                  width: `${Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70))}%`,
+                  maxHeight: "95%",
+                }}
+              />
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
