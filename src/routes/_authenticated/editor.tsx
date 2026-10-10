@@ -488,48 +488,48 @@ function Editor() {
                 <Switch checked={s.headline} onCheckedChange={(v) => set("headline", v)} />
               </span>
             </div>
-            {open === "headline" && <div className="divide-y divide-[#3a3a3a] bg-[#222222] px-4 pb-4 text-white">
+            {open === "headline" && <div className="divide-y divide-border bg-card px-4 pb-4 text-foreground">
               <div className="space-y-2 py-3">
                 <p className="text-sm font-semibold">Selecione o melhor modo de edição</p>
-                <p className="text-xs leading-relaxed text-white/60">Visual e Código editam a mesma headline. A prévia é atualizada enquanto você edita.</p>
-                <div className="grid grid-cols-2 rounded-md border border-[#3a3a3a] p-1">
-                  <button type="button" onClick={() => { if (headlineMode === "code") { const root = document.createElement("div"); root.innerHTML = headlineCode; const parsed = parseHeadlineDom(root, s.headlineColor, s.headlineFontSize); set("headlineText", parsed.map(p => p.text).join("")); set("headlineSegments", parsed); } setHeadlineMode("visual"); }} className={"rounded px-3 py-2 text-sm " + (headlineMode === "visual" ? "border border-sky-500 text-sky-400" : "text-white/70")}>Visual</button>
-                  <button type="button" onClick={() => { if (headlineMode === "visual") setHeadlineCode(headlineSegmentsToHtml(s.headlineSegments, s.headlineText, s.headlineColor, s.headlineFontSize, s.headlineBold, s.headlineItalic, s.headlineUnderline)); setHeadlineMode("code"); }} className={"rounded px-3 py-2 text-sm " + (headlineMode === "code" ? "border border-sky-500 text-sky-400" : "text-white/70")}>Código HTML</button>
+                <p className="text-xs leading-relaxed text-muted-foreground">Visual e Código editam a mesma headline. A prévia é atualizada enquanto você edita.</p>
+                <div className="grid grid-cols-2 rounded-md border border-border bg-muted/30 p-1">
+                  <button type="button" onClick={() => { if (headlineMode === "code") { const root = document.createElement("div"); root.innerHTML = headlineCode; const parsed = parseHeadlineDom(root, s.headlineColor, s.headlineFontSize); set("headlineText", parsed.map(p => p.text).join("")); set("headlineSegments", parsed); } setHeadlineMode("visual"); }} className={"rounded px-3 py-2 text-sm " + (headlineMode === "visual" ? "border border-primary text-primary" : "text-muted-foreground")}>Visual</button>
+                  <button type="button" onClick={() => { if (headlineMode === "visual") setHeadlineCode(headlineSegmentsToHtml(s.headlineSegments, s.headlineText, s.headlineColor, s.headlineFontSize, s.headlineBold, s.headlineItalic, s.headlineUnderline)); setHeadlineMode("code"); }} className={"rounded px-3 py-2 text-sm " + (headlineMode === "code" ? "border border-primary text-primary" : "text-muted-foreground")}>Código HTML</button>
                 </div>
               </div>
               {s.headlineUseImage ? (
                 <div className="space-y-2 py-3">
-                  <Label className="text-white">Tipo de headline</Label>
+                  <Label className="text-foreground">Tipo de headline</Label>
                   <div className="flex gap-2">
                     <Button type="button" size="sm" variant="outline" onClick={() => set("headlineUseImage", false)}>Texto</Button>
                     <Button type="button" size="sm" variant="default">Imagem</Button>
                   </div>
-                  <Label className="text-white">URL direta da imagem da headline</Label>
+                  <Label className="text-foreground">URL direta da imagem da headline</Label>
                   <Input value={s.headlineImageUrl} onChange={(e) => set("headlineImageUrl", e.target.value)} placeholder="https://site.com/headline.webp" />
                   <ImageUrlPreview url={s.headlineImageUrl} title="Prévia da imagem da headline" aspect={s.aspect} />
                 </div>
               ) : (
                 <>
                   <div className="space-y-2 py-3">
-                    <Label className="text-white">Tipo de headline</Label>
+                    <Label className="text-foreground">Tipo de headline</Label>
                     <div className="flex gap-2">
                       <Button type="button" size="sm" variant="default">Texto</Button>
                       <Button type="button" size="sm" variant="outline" onClick={() => set("headlineUseImage", true)}>Imagem</Button>
                     </div>
                     {headlineMode === "visual" ? (
                       <div className="space-y-2">
-                        <div className="flex flex-wrap gap-1 rounded-md border border-[#343b4a] bg-[#151923] p-2">
-                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("bold")} title="Negrito" onClick={() => toggleHeadlineStyle("bold")} className={"h-8 w-8 border " + (isHeadlineStyleActive("bold") ? "border-sky-400/40 bg-sky-400/10 text-sky-300" : "border-transparent text-slate-300")}>B</Button>
-                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("italic")} title="Itálico" onClick={() => toggleHeadlineStyle("italic")} className={"h-8 w-8 border italic " + (isHeadlineStyleActive("italic") ? "border-sky-400/40 bg-sky-400/10 text-sky-300" : "border-transparent text-slate-300")}>I</Button>
-                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("underline")} title="Sublinhado" onClick={() => toggleHeadlineStyle("underline")} className={"h-8 w-8 border underline " + (isHeadlineStyleActive("underline") ? "border-sky-400/40 bg-sky-400/10 text-sky-300" : "border-transparent text-slate-300")}>U</Button>
-                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("strike")} title="Tachado" onClick={() => toggleHeadlineStyle("strike")} className={"h-8 w-8 border line-through " + (isHeadlineStyleActive("strike") ? "border-sky-400/40 bg-sky-400/10 text-sky-300" : "border-transparent text-slate-300")}>S</Button>
-                          <label title="Cor do texto" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-white/10">A<input type="color" value={headlineWordColor} onChange={(e) => { setHeadlineWordColor(e.target.value); applyHeadlineStyle({ color: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
-                          <label title="Destaque de fundo" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-white/10">▰<input type="color" value={headlineBackground} onChange={(e) => { setHeadlineBackground(e.target.value); applyHeadlineStyle({ backgroundColor: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
+                        <div className="flex flex-wrap gap-1 rounded-md border border-border bg-muted/30 p-2">
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("bold")} title="Negrito" onClick={() => toggleHeadlineStyle("bold")} className={"h-8 w-8 border " + (isHeadlineStyleActive("bold") ? "border-primary/40 bg-primary/10 text-primary" : "border-transparent text-muted-foreground")}>B</Button>
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("italic")} title="Itálico" onClick={() => toggleHeadlineStyle("italic")} className={"h-8 w-8 border italic " + (isHeadlineStyleActive("italic") ? "border-primary/40 bg-primary/10 text-primary" : "border-transparent text-muted-foreground")}>I</Button>
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("underline")} title="Sublinhado" onClick={() => toggleHeadlineStyle("underline")} className={"h-8 w-8 border underline " + (isHeadlineStyleActive("underline") ? "border-primary/40 bg-primary/10 text-primary" : "border-transparent text-muted-foreground")}>U</Button>
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("strike")} title="Tachado" onClick={() => toggleHeadlineStyle("strike")} className={"h-8 w-8 border line-through " + (isHeadlineStyleActive("strike") ? "border-primary/40 bg-primary/10 text-primary" : "border-transparent text-muted-foreground")}>S</Button>
+                          <label title="Cor do texto" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-accent">A<input type="color" value={headlineWordColor} onChange={(e) => { setHeadlineWordColor(e.target.value); applyHeadlineStyle({ color: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
+                          <label title="Destaque de fundo" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-accent">▰<input type="color" value={headlineBackground} onChange={(e) => { setHeadlineBackground(e.target.value); applyHeadlineStyle({ backgroundColor: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
                           <span className="mx-1 h-8 w-px bg-[#3a3a3a]" />
                           {(["left","center","right","justify"] as const).map((align) => <Button key={align} type="button" size="icon" variant={s.headlineAlign === align ? "default" : "ghost"} title={"Alinhar " + align} onClick={() => set("headlineAlign", align)} className="h-8 w-8 text-xs">{align === "left" ? "⇤" : align === "center" ? "↔" : align === "right" ? "⇥" : "☷"}</Button>)}
                         </div>
                         <div className="flex items-center gap-2 rounded-md border border-[#3a3a3a] p-2">
-                          <span className="text-xs text-white/60">Aa</span>
+                          <span className="text-xs text-muted-foreground">Aa</span>
                           <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => set("headlineFontSize", Math.max(8, s.headlineFontSize - 1))}>−</Button>
                           <Input type="number" min={8} max={96} value={s.headlineFontSize} onChange={(e) => set("headlineFontSize", Math.min(96, Math.max(8, Number(e.target.value) || 18)))} className="h-8 w-16 text-center" />
                           <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => set("headlineFontSize", Math.min(96, s.headlineFontSize + 1))}>+</Button>
@@ -541,7 +541,7 @@ function Editor() {
                             onMouseUp={(e) => { const el=e.currentTarget; const sel=window.getSelection(); if(sel?.rangeCount&&el.contains(sel.anchorNode)){const r=sel.getRangeAt(0).cloneRange();const end=getCaretTextOffset(el,r);r.collapse(true);setHeadlineSelection({start:getCaretTextOffset(el,r),end});} }}
                             onKeyUp={(e) => { const el=e.currentTarget; const sel=window.getSelection(); if(sel?.rangeCount&&el.contains(sel.anchorNode)){const r=sel.getRangeAt(0).cloneRange();const end=getCaretTextOffset(el,r);r.collapse(true);setHeadlineSelection({start:getCaretTextOffset(el,r),end});} }}
                             data-placeholder="Digite ou cole sua headline…" style={{fontFamily:s.headlineFontFamily,fontWeight:s.headlineFontWeight,lineHeight:s.headlineLineHeight,letterSpacing:s.headlineLetterSpacing+"px",textTransform:s.headlineTransform,textAlign:s.headlineAlign,backgroundColor:s.headlineBackgroundColor}} className="min-h-32 w-full whitespace-pre-wrap rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-3 py-3 text-sm leading-relaxed text-white outline-none focus-visible:border-sky-500 [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-white/35" />
-                          <button type="button" onClick={() => setHeadlineExpanded(true)} title="Expandir editor" className="absolute bottom-2 right-2 rounded border border-[#3a3a3a] bg-[#222] p-1.5 text-white/70 hover:text-sky-400"><Maximize2 className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => setHeadlineExpanded(true)} title="Expandir editor" className="absolute bottom-2 right-2 rounded border border-[#3a3a3a] bg-[#222] p-1.5 text-muted-foreground hover:text-sky-400"><Maximize2 className="h-4 w-4" /></button>
                         </div>
                         <p className="text-[11px] text-white/50">Selecione um trecho antes de usar as ferramentas para formatar somente aquela parte.</p>
                       </div>
@@ -552,19 +552,19 @@ function Editor() {
                   <details className="py-3">
                     <summary className="cursor-pointer list-none text-sm font-medium">Tipografia <span className="float-right text-white/50">⌄</span></summary>
                     <div className="grid grid-cols-2 gap-3 pt-3">
-                      <div className="space-y-1"><Label className="text-white/70">Família</Label><select value={s.headlineFontFamily} onChange={e=>set("headlineFontFamily",e.target.value)} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value="Inter, Arial, sans-serif">Inter</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="Impact, sans-serif">Impact</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option></select></div>
-                      <div className="space-y-1"><Label className="text-white/70">Peso</Label><select value={s.headlineFontWeight} onChange={e=>set("headlineFontWeight",Number(e.target.value))} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value={400}>Normal</option><option value={500}>Médio</option><option value={600}>Semibold</option><option value={700}>Negrito</option><option value={800}>Extra negrito</option><option value={900}>Preto</option></select></div>
-                      <div className="space-y-1"><Label className="text-white/70">Altura da linha</Label><Input type="number" min={0.8} max={2.5} step={0.1} value={s.headlineLineHeight} onChange={e=>set("headlineLineHeight",Math.min(2.5,Math.max(0.8,Number(e.target.value)||1.2)))} /></div>
-                      <div className="space-y-1"><Label className="text-white/70">Espaçamento letras</Label><Input type="number" min={-2} max={10} step={0.1} value={s.headlineLetterSpacing} onChange={e=>set("headlineLetterSpacing",Number(e.target.value)||0)} /></div>
-                      <div className="col-span-2 space-y-1"><Label className="text-white/70">Transformação</Label><select value={s.headlineTransform} onChange={e=>set("headlineTransform",e.target.value as PlayerSettings["headlineTransform"])} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value="none">Original</option><option value="uppercase">MAIÚSCULAS</option><option value="lowercase">minúsculas</option><option value="capitalize">Iniciais maiúsculas</option></select></div>
+                      <div className="space-y-1"><Label className="text-muted-foreground">Família</Label><select value={s.headlineFontFamily} onChange={e=>set("headlineFontFamily",e.target.value)} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value="Inter, Arial, sans-serif">Inter</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="Impact, sans-serif">Impact</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option></select></div>
+                      <div className="space-y-1"><Label className="text-muted-foreground">Peso</Label><select value={s.headlineFontWeight} onChange={e=>set("headlineFontWeight",Number(e.target.value))} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value={400}>Normal</option><option value={500}>Médio</option><option value={600}>Semibold</option><option value={700}>Negrito</option><option value={800}>Extra negrito</option><option value={900}>Preto</option></select></div>
+                      <div className="space-y-1"><Label className="text-muted-foreground">Altura da linha</Label><Input type="number" min={0.8} max={2.5} step={0.1} value={s.headlineLineHeight} onChange={e=>set("headlineLineHeight",Math.min(2.5,Math.max(0.8,Number(e.target.value)||1.2)))} /></div>
+                      <div className="space-y-1"><Label className="text-muted-foreground">Espaçamento letras</Label><Input type="number" min={-2} max={10} step={0.1} value={s.headlineLetterSpacing} onChange={e=>set("headlineLetterSpacing",Number(e.target.value)||0)} /></div>
+                      <div className="col-span-2 space-y-1"><Label className="text-muted-foreground">Transformação</Label><select value={s.headlineTransform} onChange={e=>set("headlineTransform",e.target.value as PlayerSettings["headlineTransform"])} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value="none">Original</option><option value="uppercase">MAIÚSCULAS</option><option value="lowercase">minúsculas</option><option value="capitalize">Iniciais maiúsculas</option></select></div>
                     </div>
                   </details>
                   <details className="py-3">
                     <summary className="cursor-pointer list-none text-sm font-medium">Layout <span className="float-right text-white/50">⌄</span></summary>
                     <div className="grid grid-cols-2 gap-3 pt-3">
-                      <div className="space-y-1"><Label className="text-white/70">Largura (%)</Label><Input type="number" min={30} max={100} value={s.headlineWidth} onChange={e=>set("headlineWidth",Math.min(100,Math.max(30,Number(e.target.value)||100)))} /></div>
-                      <div className="space-y-1"><Label className="text-white/70">Margem interna (px)</Label><Input type="number" min={0} max={48} value={s.headlinePadding} onChange={e=>set("headlinePadding",Math.min(48,Math.max(0,Number(e.target.value)||0)))} /></div>
-                      <div className="col-span-2 space-y-1"><Label className="text-white/70">Fundo do texto</Label><div className="flex items-center gap-2"><input type="color" value={s.headlineBackgroundColor === "transparent" ? "#222222" : s.headlineBackgroundColor} onChange={e=>set("headlineBackgroundColor",e.target.value)} /><Button size="sm" variant="outline" type="button" onClick={()=>set("headlineBackgroundColor","transparent")}>Sem fundo</Button></div></div>
+                      <div className="space-y-1"><Label className="text-muted-foreground">Largura (%)</Label><Input type="number" min={30} max={100} value={s.headlineWidth} onChange={e=>set("headlineWidth",Math.min(100,Math.max(30,Number(e.target.value)||100)))} /></div>
+                      <div className="space-y-1"><Label className="text-muted-foreground">Margem interna (px)</Label><Input type="number" min={0} max={48} value={s.headlinePadding} onChange={e=>set("headlinePadding",Math.min(48,Math.max(0,Number(e.target.value)||0)))} /></div>
+                      <div className="col-span-2 space-y-1"><Label className="text-muted-foreground">Fundo do texto</Label><div className="flex items-center gap-2"><input type="color" value={s.headlineBackgroundColor === "transparent" ? "#222222" : s.headlineBackgroundColor} onChange={e=>set("headlineBackgroundColor",e.target.value)} /><Button size="sm" variant="outline" type="button" onClick={()=>set("headlineBackgroundColor","transparent")}>Sem fundo</Button></div></div>
                     </div>
                   </details>
                 </>
