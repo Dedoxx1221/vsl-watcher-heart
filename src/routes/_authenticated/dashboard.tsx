@@ -249,7 +249,7 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
       }
       retention = point.r;
     }
-    return { id: viewer.session_id, position, retention };
+    return { id: viewer.session_id, x: position, y: retention, position, retention };
   });
 
   const changes = useMemo(() => {
@@ -371,7 +371,7 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
               />
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              {liveMarkers.length > 0 && <Scatter name="Espectadores ao vivo" data={liveMarkers} dataKey="retention" fill="var(--chart-3)" shape={{ r: 5, stroke: "var(--background)", strokeWidth: 1.5 }} isAnimationActive={false} />}
+              {liveMarkers.length > 0 && <Scatter name="Espectadores ao vivo" data={liveMarkers} dataKey="y" fill="var(--chart-3)" shape={{ r: 5, fill: "var(--chart-3)", stroke: "var(--background)", strokeWidth: 1.5 }} isAnimationActive={false} />}
               <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
