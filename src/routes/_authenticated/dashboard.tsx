@@ -371,8 +371,8 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
               />
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              {liveMarkers.length > 0 && <Scatter name="Espectadores ao vivo" data={liveMarkers} dataKey="y" fill="var(--chart-3)" shape={{ r: 5, fill: "var(--chart-3)", stroke: "var(--background)", strokeWidth: 1.5 }} isAnimationActive={false} />}
               <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
+              {liveMarkers.length > 0 && <Scatter xAxisId={0} yAxisId={0} name="Espectadores ao vivo" data={liveMarkers} dataKey="y" fill="#22c55e" shape={(props: { cx?: number; cy?: number }) => props.cx == null || props.cy == null ? <g /> : <circle cx={props.cx} cy={props.cy} r={6} fill="#22c55e" stroke="#ffffff" strokeWidth={2} /> } isAnimationActive={false} />}
             </AreaChart>
           </ResponsiveContainer>
         </div>
