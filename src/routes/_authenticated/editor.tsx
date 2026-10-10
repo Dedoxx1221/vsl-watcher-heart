@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/editor")({
-  validateSearch: (search: Record<string, unknown>) => ({ v: typeof search.v === "string" ? search.v : undefined }),
+  validateSearch: (search: Record<string, unknown>): { v?: string } => ({ v: typeof search["v"] === "string" ? search["v"] : undefined }),
   head: () => ({
     meta: [
       { title: "Editor do player — Vexora" },
