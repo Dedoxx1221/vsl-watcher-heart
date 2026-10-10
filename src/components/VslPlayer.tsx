@@ -247,8 +247,8 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <div
-                className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "pointer-events-none")}
-                onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); } }}
+                className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "cursor-default")}
+                onClick={(e) => { if (cfg.autoplay && (cfg.autoplayImage || video.thumbnail_url)) { e.preventDefault(); e.stopPropagation(); } if (preview && onAutoplayImageTransform) setImageSelected(true); }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
                   if ((e.target as HTMLElement).dataset["resizeHandle"]) return;
                   e.preventDefault(); e.stopPropagation(); setImageSelected(true); setImageMoving(true);
@@ -271,8 +271,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   left: `${Math.min(100, Math.max(0, cfg.autoplayImageX ?? 50))}%`,
                   top: `${Math.min(100, Math.max(0, cfg.autoplayImageY ?? 50))}%`,
                   transform: "translate(-50%, -50%)",
-                  width: `${Math.min(Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)), autoplayImageRatio && ref.current ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio : 100)}%`,
-                  maxHeight: "95%",
+                  width: `${Math.max(1, cfg.autoplayImageSize ?? 70)}%`,
                   aspectRatio: autoplayImageRatio ? String(autoplayImageRatio) : undefined,
                   touchAction: preview && onAutoplayImageTransform ? "none" : undefined,
                   outline: imageSelected && preview && onAutoplayImageTransform ? "1px solid #2589ff" : "none",
@@ -319,7 +318,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                           const dx = (e.clientX - d.startX) / Math.max(1, d.width) * 100 * horizontal;
                           const dy = (e.clientY - d.startY) / Math.max(1, d.height) * 100 * vertical * (autoplayImageRatio || 1);
                           const delta = horizontal && vertical ? (dx + dy) / 2 : horizontal ? dx : dy;
-                          onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.min(100, Math.max(15, d.size + delta)) });
+                          onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.max(1, d.size + delta) });
                         }}
                         onPointerUp={() => { imageDrag.current = null; }}
                         onPointerCancel={() => { imageDrag.current = null; }}
