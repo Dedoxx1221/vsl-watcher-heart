@@ -31,8 +31,8 @@ function Embed() {
       return data;
     },
   });
-  if (isLoading) return <div className="aspect-video w-full bg-background" />;
-  if (!video) return <div className="p-6 text-muted-foreground">Vídeo não encontrado.</div>;
-  return <VslPlayer video={video} />;
+  if (isLoading) return <div className="fixed inset-0 overflow-hidden bg-transparent" />;
+  if (!video) return <div className="fixed inset-0 overflow-hidden bg-transparent p-6 text-muted-foreground">Vídeo não encontrado.</div>;
+  return <div className="fixed inset-0 overflow-hidden bg-transparent"><VslPlayer video={video} /></div>;
 }
 
