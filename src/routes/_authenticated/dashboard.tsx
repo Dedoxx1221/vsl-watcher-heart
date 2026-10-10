@@ -428,6 +428,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
             </ResponsiveContainer>
           </div>
         </div>
+        </div>
         <div className="panel overflow-hidden p-0">
           <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Interações</p><h2 className="text-lg font-semibold tracking-tight">Eventos registrados</h2><p className="mt-1 text-xs text-muted-foreground">Ações detectadas dentro do player no período selecionado.</p></div>
           <div className="px-5 py-3 md:px-6">
@@ -442,7 +443,6 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
           ))}
         </div>
         </div>
-      </div>
       </div>
     </>
   );
