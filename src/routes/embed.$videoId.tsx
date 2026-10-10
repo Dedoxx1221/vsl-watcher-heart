@@ -33,10 +33,10 @@ function Embed() {
       bodyOverflow: body.style.overflow,
       bodyMargin: body.style.margin,
     };
-    html.style.background = "transparent";
+    html.style.background = "#000";
     html.style.backgroundImage = "none";
     html.style.overflow = "hidden";
-    body.style.background = "transparent";
+    body.style.background = "#000";
     body.style.backgroundImage = "none";
     body.style.overflow = "hidden";
     body.style.margin = "0";
@@ -67,8 +67,8 @@ function Embed() {
     <>
       <style>{`
         html, body, #root {
-          background: transparent !important;
-          background-color: transparent !important;
+          background: #000 !important;
+          background-color: #000 !important;
           background-image: none !important;
           box-shadow: none !important;
         }
@@ -108,8 +108,8 @@ function Embed() {
       `}</style>
       <div
         id="vexora-embed-root"
-        className="relative w-full min-w-0 max-w-full overflow-visible bg-transparent"
-        style={{ background: "transparent", backgroundColor: "transparent", backgroundImage: "none", boxShadow: "none" }}
+        className="relative w-full min-w-0 max-w-full overflow-visible"
+        style={{ background: "#000", backgroundColor: "#000", backgroundImage: "none", boxShadow: "none" }}
       >
         <VslPlayer video={video} />
       </div>
