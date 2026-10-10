@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronDown, Download, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Download, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime } from "@/lib/videos";
 import { parseSettings, DEFAULT_SETTINGS, type PlayerSettings } from "@/lib/player-settings";
@@ -214,6 +214,34 @@ function Editor() {
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="panel overflow-hidden rounded-xl">
+          <Section id="video-settings" title="Configurações de Vídeo">
+            <div className="space-y-3 py-3">
+              <div>
+                <p className="text-sm font-medium">Código de incorporação (Embed)</p>
+                <p className="mt-1 text-xs text-muted-foreground">Copie o código para incorporar esta VSL em uma página externa. O código usa o vídeo selecionado.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={async () => {
+                  const origin = window.location.origin;
+                  const id = video.id;
+                  const code = `<div id="vsl-${id}" style="position:relative;width:100%;max-width:480px;margin:0 auto"></div>
+<script>(function(){var c=document.getElementById("vsl-${id}");var f=document.createElement("iframe");f.src="${origin}/embed/${id}"+location.search;f.allow="autoplay; fullscreen";f.allowFullscreen=true;f.style.cssText="display:block;width:100%;border:0;aspect-ratio:9/16";c.appendChild(f);addEventListener("message",function(e){if(e.source===f.contentWindow&&e.data&&e.data.vslHeight){f.style.aspectRatio="auto";f.style.height=e.data.vslHeight+"px";}});})();</script>`;
+                  try {
+                    await navigator.clipboard.writeText(code);
+                    toast.success("Código embed copiado.");
+                  } catch {
+                    toast.error("Não foi possível copiar. Verifique a permissão de área de transferência do navegador.");
+                  }
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" /> Copiar código embed
+              </Button>
+            </div>
+          </Section>
+
           <Section id="style" title="Aparência">
             <div className="flex gap-2 py-2">
               {(["9:16", "16:9"] as const).map((a) => (
