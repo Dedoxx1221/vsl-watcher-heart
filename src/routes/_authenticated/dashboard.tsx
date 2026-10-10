@@ -10,9 +10,9 @@ import { TrendingDown, TrendingUp, Radio, MapPin, Monitor, Smartphone, Tablet } 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Analytics — Retina" },
+      { title: "Analytics — Vexora" },
       { name: "description", content: "Retenção, abandono e funil da sua VSL." },
-      { property: "og:title", content: "Analytics — Retina" },
+      { property: "og:title", content: "Analytics — Vexora" },
       { property: "og:description", content: "Retenção, abandono e funil da sua VSL." },
     ],
   }),
