@@ -65,48 +65,81 @@ export type Database = {
       sessions: {
         Row: {
           campaign: string | null
+          city: string | null
           clicked_checkout: boolean
+          country: string | null
+          current_position: number
+          device_type: string | null
           id: string
+          is_playing: boolean
           last_seen_at: string
           max_position: number
           paused_seconds: number
           played: boolean
           reached_offer: boolean
           referrer: string | null
+          region: string | null
           started_at: string
           user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
           video_id: string
           viewer_id: string
           watched_seconds: number
         }
         Insert: {
           campaign?: string | null
+          city?: string | null
           clicked_checkout?: boolean
+          country?: string | null
+          current_position?: number
+          device_type?: string | null
           id: string
+          is_playing?: boolean
           last_seen_at?: string
           max_position?: number
           paused_seconds?: number
           played?: boolean
           reached_offer?: boolean
           referrer?: string | null
+          region?: string | null
           started_at?: string
           user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           video_id: string
           viewer_id: string
           watched_seconds?: number
         }
         Update: {
           campaign?: string | null
+          city?: string | null
           clicked_checkout?: boolean
+          country?: string | null
+          current_position?: number
+          device_type?: string | null
           id?: string
+          is_playing?: boolean
           last_seen_at?: string
           max_position?: number
           paused_seconds?: number
           played?: boolean
           reached_offer?: boolean
           referrer?: string | null
+          region?: string | null
           started_at?: string
           user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           video_id?: string
           viewer_id?: string
           watched_seconds?: number
@@ -207,6 +240,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_live_vsl_analytics: { Args: { _video_id: string }; Returns: Json }
       get_video_analytics: {
         Args: {
           _campaign: string
