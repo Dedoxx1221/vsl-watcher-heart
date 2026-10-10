@@ -84,7 +84,6 @@ function headlineSegmentsToHtml(segments: HeadlineSegment[], text: string, color
       `font-weight:${(part.bold ?? bold) ? 700 : 400}`,
       `font-style:${(part.italic ?? italic) ? "italic" : "normal"}`,
       `text-decoration:${[(part.underline ?? underline) ? "underline" : "", part.strike ? "line-through" : ""].filter(Boolean).join(" ") || "none"}`,
-      `background-color:${part.backgroundColor || "transparent"}`,
     ].join(";");
     return `<span style="${styles}">${escapeHtml(part.text).replace(/\n/g, "<br>")}</span>`;
   }).join("");
@@ -108,7 +107,6 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
     const style = el.style;
     const next: Partial<HeadlineSegment> = { ...inherited };
     if (style.color) next.color = style.color;
-    if (style.backgroundColor && style.backgroundColor !== "transparent" && style.backgroundColor !== "rgba(0, 0, 0, 0)") next.backgroundColor = style.backgroundColor;
     if (style.fontSize?.endsWith("px")) next.size = Number.parseFloat(style.fontSize);
     if (style.fontWeight) next.bold = style.fontWeight === "bold" || Number(style.fontWeight) >= 600;
     if (style.fontStyle) next.italic = style.fontStyle === "italic";
@@ -189,7 +187,6 @@ function Editor() {
   const [headlineMode, setHeadlineMode] = useState<"visual" | "code">("visual");
   const [headlineCode, setHeadlineCode] = useState("");
   const [headlineExpanded, setHeadlineExpanded] = useState(false);
-  const [headlineBackground, setHeadlineBackground] = useState("#ff9800");
   const headlineEditorRef = useRef<HTMLDivElement>(null);
   const headlineExpandedRef = useRef<HTMLDivElement>(null);
   const skipHeadlineDomSync = useRef(false);
@@ -286,7 +283,8 @@ function Editor() {
     if (!video || saving) return;
     setSaving(true);
     try {
-      const { ctaAlways: _drop, ...clean } = s;
+      const { ctaAlways: _drop, ...cleanSettings } = s;
+      const clean = { ...cleanSettings, headlineBackgroundColor: "transparent", headlineSegments: cleanSettings.headlineSegments.map(({ backgroundColor: _backgroundColor, ...segment }) => segment) };
       const { data, error } = await supabase.from("videos").update({
         player_settings: clean, offer_time_seconds: parseTime(offer), checkout_url: checkout || null,
       }).eq("id", video.id).select("id").maybeSingle();
@@ -547,7 +545,6 @@ function Editor() {
                           <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("underline")} title="Sublinhado" onClick={() => toggleHeadlineStyle("underline")} className={"h-8 w-8 border underline " + (isHeadlineStyleActive("underline") ? "border-primary/40 bg-primary/10 text-primary" : "border-transparent text-muted-foreground")}>U</Button>
                           <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("strike")} title="Tachado" onClick={() => toggleHeadlineStyle("strike")} className={"h-8 w-8 border line-through " + (isHeadlineStyleActive("strike") ? "border-primary/40 bg-primary/10 text-primary" : "border-transparent text-muted-foreground")}>S</Button>
                           <label title="Cor do texto" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-accent">A<input type="color" value={headlineWordColor} onChange={(e) => { setHeadlineWordColor(e.target.value); applyHeadlineStyle({ color: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
-                          <label title="Destaque de fundo" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-accent">▰<input type="color" value={headlineBackground} onChange={(e) => { setHeadlineBackground(e.target.value); applyHeadlineStyle({ backgroundColor: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
                           <span className="mx-1 h-8 w-px bg-[#3a3a3a]" />
                           {(["left","center","right","justify"] as const).map((align) => <Button key={align} type="button" size="icon" variant={s.headlineAlign === align ? "default" : "ghost"} title={"Alinhar " + align} onClick={() => set("headlineAlign", align)} className="h-8 w-8 text-xs">{align === "left" ? "⇤" : align === "center" ? "↔" : align === "right" ? "⇥" : "☷"}</Button>)}
                         </div>
@@ -563,7 +560,7 @@ function Editor() {
                             onInput={(e) => { const el=e.currentTarget; const parsed=parseHeadlineDom(el,s.headlineColor,s.headlineFontSize); skipHeadlineDomSync.current=true; set("headlineText",parsed.map(p=>p.text).join("")); set("headlineSegments",parsed); const sel=window.getSelection(); if(sel?.rangeCount){const r=sel.getRangeAt(0); const pos=getCaretTextOffset(el,r.cloneRange()); setHeadlineSelection({start:pos,end:pos});} }}
                             onMouseUp={(e) => { const el=e.currentTarget; const sel=window.getSelection(); if(sel?.rangeCount&&el.contains(sel.anchorNode)){const r=sel.getRangeAt(0).cloneRange();const end=getCaretTextOffset(el,r);r.collapse(true);setHeadlineSelection({start:getCaretTextOffset(el,r),end});} }}
                             onKeyUp={(e) => { const el=e.currentTarget; const sel=window.getSelection(); if(sel?.rangeCount&&el.contains(sel.anchorNode)){const r=sel.getRangeAt(0).cloneRange();const end=getCaretTextOffset(el,r);r.collapse(true);setHeadlineSelection({start:getCaretTextOffset(el,r),end});} }}
-                            data-placeholder="Digite ou cole sua headline…" style={{fontFamily:s.headlineFontFamily,fontWeight:s.headlineFontWeight,lineHeight:s.headlineLineHeight,letterSpacing:s.headlineLetterSpacing+"px",textTransform:s.headlineTransform,textAlign:s.headlineAlign,backgroundColor:s.headlineBackgroundColor}} className="min-h-32 w-full whitespace-pre-wrap rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-3 py-3 text-sm leading-relaxed text-white outline-none focus-visible:border-sky-500 [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-white/35" />
+                            data-placeholder="Digite ou cole sua headline…" style={{fontFamily:s.headlineFontFamily,fontWeight:s.headlineFontWeight,lineHeight:s.headlineLineHeight,letterSpacing:s.headlineLetterSpacing+"px",textTransform:s.headlineTransform,textAlign:s.headlineAlign,background:"transparent",backgroundColor:"transparent",backgroundImage:"none"}} className="min-h-32 w-full whitespace-pre-wrap rounded-md border border-[#3a3a3a] px-3 py-3 text-sm leading-relaxed text-white outline-none focus-visible:border-sky-500 [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-white/35" />
                           <button type="button" onClick={() => setHeadlineExpanded(true)} title="Expandir editor" className="absolute bottom-2 right-2 rounded border border-[#3a3a3a] bg-[#222] p-1.5 text-muted-foreground hover:text-sky-400"><Maximize2 className="h-4 w-4" /></button>
                         </div>
                         <p className="text-[11px] text-white/50">Selecione um trecho antes de usar as ferramentas para formatar somente aquela parte.</p>
@@ -587,7 +584,6 @@ function Editor() {
                     <div className="grid grid-cols-2 gap-3 pt-3">
                       <div className="space-y-1"><Label className="text-muted-foreground">Largura (%)</Label><Input type="number" min={30} max={100} value={s.headlineWidth} onChange={e=>set("headlineWidth",Math.min(100,Math.max(30,Number(e.target.value)||100)))} /></div>
                       <div className="space-y-1"><Label className="text-muted-foreground">Margem interna (px)</Label><Input type="number" min={0} max={48} value={s.headlinePadding} onChange={e=>set("headlinePadding",Math.min(48,Math.max(0,Number(e.target.value)||0)))} /></div>
-                      <div className="col-span-2 space-y-1"><Label className="text-muted-foreground">Fundo do texto</Label><div className="flex items-center gap-2"><input type="color" value={s.headlineBackgroundColor === "transparent" ? "#222222" : s.headlineBackgroundColor} onChange={e=>set("headlineBackgroundColor",e.target.value)} /><Button size="sm" variant="outline" type="button" onClick={()=>set("headlineBackgroundColor","transparent")}>Sem fundo</Button></div></div>
                     </div>
                   </details>
                 </>
