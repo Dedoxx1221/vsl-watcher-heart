@@ -223,6 +223,32 @@ function Editor() {
     }
   }, [s.headlineSegments, s.headlineText, s.headlineColor, s.headlineFontSize, s.headlineBold, s.headlineItalic, s.headlineUnderline, open]);
 
+  function isHeadlineStyleActive(key: "bold" | "italic" | "underline" | "strike"): boolean {
+    const text = s.headlineText;
+    let start = Math.max(0, Math.min(headlineSelection.start, headlineSelection.end));
+    let end = Math.min(text.length, Math.max(headlineSelection.start, headlineSelection.end));
+    if (start === end) {
+      while (start > 0 && !/\\s/.test(text[start - 1] ?? "")) start--;
+      end = Math.max(end, headlineSelection.start);
+      while (end < text.length && !/\\s/.test(text[end] ?? "")) end++;
+    }
+    const source = s.headlineSegments.length && s.headlineSegments.map((part) => part.text).join("") === text ? s.headlineSegments : [{ text }];
+    let offset = 0;
+    const selected: HeadlineSegment[] = [];
+    for (const part of source) {
+      const a = offset;
+      const b = offset + part.text.length;
+      offset = b;
+      if (a < end && b > start) selected.push(part);
+    }
+    if (!selected.length) return key === "bold" ? s.headlineBold : key === "italic" ? s.headlineItalic : key === "underline" ? s.headlineUnderline : false;
+    return selected.every((part) => key === "bold" ? (part.bold ?? s.headlineBold) : key === "italic" ? (part.italic ?? s.headlineItalic) : key === "underline" ? (part.underline ?? s.headlineUnderline) : (part.strike ?? false));
+  }
+
+  function toggleHeadlineStyle(key: "bold" | "italic" | "underline" | "strike") {
+    applyHeadlineStyle({ [key]: !isHeadlineStyleActive(key) });
+  }
+
   function applyHeadlineStyle(patch: Partial<HeadlineSegment>) {
     const text = s.headlineText;
     if (!text) return;
