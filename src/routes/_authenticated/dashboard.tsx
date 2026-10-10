@@ -435,6 +435,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
           </div>
         </div>
       </div>
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <div className="panel overflow-hidden p-0">
