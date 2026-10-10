@@ -43,7 +43,6 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   const [blocked, setBlocked] = useState(false);
   const [resumeAt, setResumeAt] = useState<number | null>(null);
   const [cur, setCur] = useState(0);
-  const [videoRatio, setVideoRatio] = useState<number | null>(null);
   const posKey = `vsl_pos_${video.id}`;
   const ref = useRef<HTMLVideoElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
@@ -163,9 +162,9 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   if (blocked) return null;
 
   return (
-    <div ref={wrap} style={style} className={"relative box-border mx-auto w-full min-w-0 max-w-full overflow-visible bg-transparent " + ((videoRatio ?? (cfg.aspect === "9:16" ? 9 / 16 : 16 / 9)) < 1 ? "max-w-[420px]" : "")}>
+    <div ref={wrap} style={style} className={"box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-background " + (cfg.aspect === "9:16" ? "max-w-[480px]" : "")}>
       {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
-        <div className="vexora-headline relative z-20 box-border w-full min-w-0 max-w-full overflow-visible px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign, background: "transparent", backgroundColor: "transparent", backgroundImage: "none", backgroundClip: "border-box" }}>
+        <div className="box-border w-full min-w-0 max-w-full overflow-hidden px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign }}>
           {cfg.headlineUseImage ? (
             <img src={cfg.headlineImageUrl} alt="Headline" loading="eager" className="block h-auto max-w-full" style={{ maxHeight: "40vh", objectFit: "contain", boxSizing: "border-box", marginLeft: cfg.headlineAlign === "left" ? 0 : "auto", marginRight: cfg.headlineAlign === "right" ? 0 : "auto" }} />
           ) : (() => {
@@ -173,14 +172,14 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
               ? cfg.headlineSegments
               : [{ text: cfg.headlineText }];
             return (
-              <div style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontFamily: cfg.headlineFontFamily, fontWeight: cfg.headlineFontWeight || (cfg.headlineBold ? 700 : 400), fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", lineHeight: cfg.headlineLineHeight, letterSpacing: `${cfg.headlineLetterSpacing}px`, textTransform: cfg.headlineTransform, background: "transparent", backgroundColor: "transparent", backgroundImage: "none", width: `${Math.min(100, Math.max(30, cfg.headlineWidth || 100))}%`, maxWidth: "100%", boxSizing: "border-box", padding: `${cfg.headlinePadding}px`, margin: "0 auto", overflowWrap: "anywhere" }}>
-                {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, background: segment.backgroundColor || "transparent", backgroundColor: segment.backgroundColor || "transparent", backgroundImage: "none", fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: [segment.underline ? "underline" : "", segment.strike ? "line-through" : ""].filter(Boolean).join(" ") || "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
+              <div style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontFamily: cfg.headlineFontFamily, fontWeight: cfg.headlineFontWeight || (cfg.headlineBold ? 700 : 400), fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", lineHeight: cfg.headlineLineHeight, letterSpacing: `${cfg.headlineLetterSpacing}px`, textTransform: cfg.headlineTransform, backgroundColor: cfg.headlineBackgroundColor, width: `${Math.min(100, Math.max(30, cfg.headlineWidth || 100))}%`, maxWidth: "100%", boxSizing: "border-box", padding: `${cfg.headlinePadding}px`, margin: "0 auto", overflowWrap: "anywhere" }}>
+                {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, backgroundColor: segment.backgroundColor || undefined, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: [segment.underline ? "underline" : "", segment.strike ? "line-through" : ""].filter(Boolean).join(" ") || "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
               </div>
             );
           })()}
         </div>
       )}
-      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent leading-none " + (videoRatio && videoRatio < 1 ? "max-w-[420px] " : "") + (cfg.rounded ? " rounded-xl" : "")} style={{ aspectRatio: String(videoRatio ?? (cfg.aspect === "9:16" ? 9 / 16 : 16 / 9)), borderRadius: cfg.rounded ? "12px" : "0", overflow: "hidden", background: "transparent", backgroundColor: "transparent", isolation: "isolate" }}>
+      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-background leading-none " + (cfg.aspect === "9:16" ? "aspect-[9/16] max-w-[480px]" : "aspect-video") + (cfg.rounded ? " rounded-xl" : "")}>
         <video
           ref={ref}
           src={video.video_url}
@@ -193,9 +192,9 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           poster={video.thumbnail_url ?? undefined}
           disablePictureInPicture
           controlsList="nodownload noplaybackrate noremoteplayback"
-          className="absolute inset-0 block h-full w-full max-w-full bg-transparent object-contain" style={{ borderRadius: cfg.rounded ? "12px" : "0", clipPath: cfg.rounded ? "inset(0 round 12px)" : "none", background: "transparent", backgroundColor: "transparent" }}
+          className="absolute inset-0 block h-full w-full max-w-full bg-background object-contain"
           onClick={togglePause}
-          onLoadedMetadata={() => { const v = el(); if (v.videoWidth > 0 && v.videoHeight > 0) setVideoRatio(v.videoWidth / v.videoHeight); tracker.current?.setDuration(v.duration); update(); }}
+          onLoadedMetadata={() => { tracker.current?.setDuration(el().duration); update(); }}
           onDurationChange={update}
           onPlay={() => { T()?.onPlay(el().currentTime); const r = cfg.turbo ? cfg.turboSpeed || 1 : 1; if (el().playbackRate !== r) el().playbackRate = r; }}
           onPause={() => { if (!el().ended) T()?.onPause(el().currentTime); }}
@@ -247,8 +246,8 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <div
-                className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "cursor-default")}
-                onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); return; } }}
+                className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "pointer-events-none")}
+                onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); } }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
                   if ((e.target as HTMLElement).dataset["resizeHandle"]) return;
                   e.preventDefault(); e.stopPropagation(); setImageSelected(true); setImageMoving(true);
@@ -271,7 +270,8 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   left: `${Math.min(100, Math.max(0, cfg.autoplayImageX ?? 50))}%`,
                   top: `${Math.min(100, Math.max(0, cfg.autoplayImageY ?? 50))}%`,
                   transform: "translate(-50%, -50%)",
-                  width: `${Math.max(1, cfg.autoplayImageSize ?? 70)}%`,
+                  width: `${Math.min(Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70)), autoplayImageRatio && ref.current ? 95 * ref.current.clientHeight / Math.max(1, ref.current.clientWidth) * autoplayImageRatio : 100)}%`,
+                  maxHeight: "95%",
                   aspectRatio: autoplayImageRatio ? String(autoplayImageRatio) : undefined,
                   touchAction: preview && onAutoplayImageTransform ? "none" : undefined,
                   outline: imageSelected && preview && onAutoplayImageTransform ? "1px solid #2589ff" : "none",
@@ -318,7 +318,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                           const dx = (e.clientX - d.startX) / Math.max(1, d.width) * 100 * horizontal;
                           const dy = (e.clientY - d.startY) / Math.max(1, d.height) * 100 * vertical * (autoplayImageRatio || 1);
                           const delta = horizontal && vertical ? (dx + dy) / 2 : horizontal ? dx : dy;
-                          onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.max(1, d.size + delta) });
+                          onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.min(100, Math.max(15, d.size + delta)) });
                         }}
                         onPointerUp={() => { imageDrag.current = null; }}
                         onPointerCancel={() => { imageDrag.current = null; }}

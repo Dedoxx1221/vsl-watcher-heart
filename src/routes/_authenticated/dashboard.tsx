@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
-import { VslPlayer } from "@/components/VslPlayer";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Radio, MapPin, Globe, ChartNoAxesColumn } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Radio, MapPin, Monitor, Smartphone, Tablet, Globe, MousePointerClick, Compass, ChartNoAxesColumn } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -69,101 +69,108 @@ function Dashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-7 pb-8">
-      <header className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              <ChartNoAxesColumn className="h-4 w-4" /> Central de inteligência
-            </div>
-            <h1 className="truncate text-3xl font-bold tracking-tight">{video?.name ?? "Analytics"}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Entenda onde a audiência continua, onde abandona e o que leva ao checkout.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Select value={videoId ?? ""} onValueChange={setVideoId}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Selecionar VSL" /></SelectTrigger>
-              <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={period} onValueChange={(v) => setPeriod(v as keyof typeof PERIODS)}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>{Object.entries(PERIODS).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={campaign} onValueChange={setCampaign}>
-              <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar campanha" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all">Todas campanhas</SelectItem>
-                {(a?.campaigns ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Analytics de VSL</p>
+          <h1 className="text-3xl font-bold">{video?.name}</h1>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border pb-4 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Dados ao vivo</span>
-          <span>·</span><span>Atualização em tempo real</span>
-          <span>·</span><span>Período: {PERIODS[period]}</span>
-          {campaign !== "__all" && <><span>·</span><span className="max-w-48 truncate">Campanha: {campaign}</span></>}
+        <div className="flex flex-wrap gap-2">
+          <Select value={videoId ?? ""} onValueChange={setVideoId}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={period} onValueChange={(v) => setPeriod(v as keyof typeof PERIODS)}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>{Object.entries(PERIODS).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={campaign} onValueChange={setCampaign}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Campanha" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">Todas campanhas</SelectItem>
+              {(a?.campaigns ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
-      </header>
+      </div>
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold">Audiência agora</h2>
-            <p className="text-xs text-muted-foreground">Sessões vistas nos últimos 35 segundos · sincronizado a cada 5 s</p>
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Radio className="h-5 w-5 text-emerald-500" />
+            <h2 className="text-xl font-bold">Ao vivo</h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />Atualiza a cada 5 s</span>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-600">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Ao vivo
-          </span>
+          <p className="text-xs text-muted-foreground">Sessões vistas nos últimos 35 segundos</p>
         </div>
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Radio className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Espectadores ativos</p><p className="num text-2xl font-semibold">{live?.active_count ?? 0}</p></div>
-          </div>
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600"><ChartNoAxesColumn className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Assistindo neste instante</p><p className="num text-2xl font-semibold">{live?.playing_count ?? 0}</p></div>
-          </div>
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600"><Globe className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Origens identificadas</p><p className="num text-2xl font-semibold">{new Set((live?.viewers ?? []).map(v => v.utm_source || (v.referrer ? (() => { try { return new URL(v.referrer!).hostname; } catch { return v.referrer; } })() : null)).filter(Boolean)).size}</p></div>
-          </div>
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600"><MapPin className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Localizações conhecidas</p><p className="num text-2xl font-semibold">{new Set((live?.viewers ?? []).map(v => [v.city, v.region, v.country].filter(Boolean).join(", ")).filter(Boolean)).size}</p></div>
-          </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Kpi label="Espectadores ativos" value={String(live?.active_count ?? 0)} sub="Player aberto recentemente" />
+          <Kpi label="Assistindo agora" value={String(live?.playing_count ?? 0)} sub="Reprodução em andamento" />
+          <Kpi label="Localizações detectadas" value={String((live?.geo ?? []).filter(g => g.country !== "Desconhecido").length)} sub="País/região/cidade quando disponíveis" />
+          <Kpi label="Fontes UTM distintas" value={String(new Set((live?.viewers ?? []).map(v => v.utm_source).filter(Boolean)).size)} sub="Entre as sessões ativas" />
         </div>
-        <details className="panel group">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
-            <div><p className="text-sm font-semibold">Explorar audiência ao vivo</p><p className="mt-0.5 text-xs text-muted-foreground">Países, origens, navegadores e dispositivos sem poluir a visão principal</p></div>
-            <span className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground group-open:bg-secondary">Ver detalhes <span className="ml-1 inline-block transition-transform group-open:rotate-180">⌄</span></span>
-          </summary>
-          <div className="grid gap-5 border-t border-border p-4 md:grid-cols-2 xl:grid-cols-4">
-            <div><h3 className="mb-3 text-sm font-semibold">Países</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => countryDisplayName(v.country))} total={live?.active_count ?? 0} empty="Sem localização disponível." /></div>
-            <div><h3 className="mb-3 text-sm font-semibold">Origem / UTM</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => { const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / "); if (utm) return utm; if (!v.referrer) return "Direto / desconhecido"; try { return new URL(v.referrer).hostname; } catch { return v.referrer; } })} total={live?.active_count ?? 0} empty="Sem origem identificada." /></div>
-            <div><h3 className="mb-3 text-sm font-semibold">Navegadores</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de navegador." /></div>
-            <div><h3 className="mb-3 text-sm font-semibold">Dispositivos</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de dispositivo." /></div>
+        <div className="panel overflow-hidden">
+          <div className="border-b border-border p-4">
+            <h3 className="font-semibold">Espectadores neste momento</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Veja os dados agregados dos espectadores ativos, sem informações desnecessárias por sessão.</p>
           </div>
-        </details>
+          <Tabs defaultValue="retencao" className="w-full">
+            <div className="overflow-x-auto border-b border-border px-3">
+              <TabsList className="h-auto min-w-max bg-transparent p-0">
+                <TabsTrigger value="retencao" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><ChartNoAxesColumn className="h-4 w-4" />Retenção geral</TabsTrigger>
+                <TabsTrigger value="paises" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Globe className="h-4 w-4" />Países</TabsTrigger>
+                <TabsTrigger value="origem" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><MousePointerClick className="h-4 w-4" />Origem</TabsTrigger>
+                <TabsTrigger value="navegadores" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Compass className="h-4 w-4" />Navegadores</TabsTrigger>
+                <TabsTrigger value="dispositivos" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Monitor className="h-4 w-4" />Dispositivos</TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="retencao" className="m-0 p-4">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><h4 className="font-medium">Posição atual no vídeo</h4><p className="text-xs text-muted-foreground">Distribuição dos espectadores ativos por trecho da VSL.</p></div><span className="text-sm text-muted-foreground">{live?.active_count ?? 0} espectadores</span></div>
+              <div className="space-y-4">
+                {[
+                  { label: "0–25% do vídeo", min: 0, max: 25 },
+                  { label: "25–50% do vídeo", min: 25, max: 50 },
+                  { label: "50–75% do vídeo", min: 50, max: 75 },
+                  { label: "75–100% do vídeo", min: 75, max: 100 },
+                ].map((bucket) => {
+                  const duration = Number(video?.duration_seconds ?? 0);
+                  const viewers = (live?.viewers ?? []).filter(v => {
+                    const p = duration > 0 ? (Number(v.position) / duration) * 100 : 0;
+                    return p >= bucket.min && (p < bucket.max || bucket.max === 100 && p <= 100);
+                  }).length;
+                  const total = live?.active_count ?? 0;
+                  return <div key={bucket.label}><div className="mb-1.5 flex justify-between gap-3 text-sm"><span>{bucket.label}</span><span className="tabular-nums text-muted-foreground">{viewers} ({total ? (viewers / total * 100).toFixed(0) : 0}%)</span></div><div className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary transition-all" style={{ width: total ? `${viewers / total * 100}%` : "0%" }} /></div></div>;
+                })}
+              </div>
+              {!live?.viewers?.length && <p className="pt-4 text-sm text-muted-foreground">Nenhum espectador ativo no momento. Abra uma VSL em outra aba para testar.</p>}
+            </TabsContent>
+            <TabsContent value="paises" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.country || "Desconhecido")} total={live?.active_count ?? 0} empty="Os países aparecerão quando houver espectadores ativos e o servidor disponibilizar a localização." />
+            </TabsContent>
+            <TabsContent value="origem" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => {
+                const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / ");
+                if (utm) return utm;
+                if (!v.referrer) return "Direto / desconhecido";
+                try { return new URL(v.referrer).hostname; } catch { return v.referrer; }
+              })} total={live?.active_count ?? 0} empty="As origens aparecerão conforme os espectadores acessarem a VSL." />
+            </TabsContent>
+            <TabsContent value="navegadores" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Os navegadores aparecerão quando o endpoint disponibilizar essa informação para cada sessão." />
+            </TabsContent>
+            <TabsContent value="dispositivos" className="m-0 p-4">
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Os dispositivos aparecerão conforme houver espectadores ativos." />
+            </TabsContent>
+          </Tabs>
+        </div>
       </section>
 
-      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} video={video ? { id: video.id, video_url: video.video_url, thumbnail_url: video.thumbnail_url ?? null, checkout_url: video.checkout_url ?? null, offer_time_seconds: video.offer_time_seconds ?? null, player_settings: video.player_settings } : null} live={live} />}
+      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} live={live} />}
     </div>
   );
 }
 
 type LiveBreakdownItem = { label: string; count: number };
-
-function countryDisplayName(code: string | null | undefined): string {
-  const value = (code ?? "").trim();
-  if (!value) return "Desconhecido";
-  if (!/^[a-z]{2}$/i.test(value)) return value;
-  try {
-    return new Intl.DisplayNames(["pt-BR"], { type: "region" }).of(value.toUpperCase()) ?? value.toUpperCase();
-  } catch {
-    return value.toUpperCase();
-  }
-}
 
 function aggregateLive<T extends { }>(viewers: T[], getLabel: (viewer: T) => string): LiveBreakdownItem[] {
   const counts = new Map<string, number>();
@@ -186,57 +193,73 @@ function LiveBreakdown({ items, total, empty }: { items: LiveBreakdownItem[]; to
 
 function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="panel group relative overflow-hidden p-4 transition-colors hover:border-primary/30 hover:bg-card/80 md:p-5">
-      <div className="absolute inset-x-0 top-0 h-0.5 bg-primary/0 transition-colors group-hover:bg-primary/50" />
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="num mt-2 text-2xl font-semibold tracking-tight md:text-[1.75rem]">{value}</p>
-      {sub && <p className="mt-1.5 min-h-4 text-xs leading-relaxed text-muted-foreground">{sub}</p>}
+    <div className="panel p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="num mt-1 text-2xl font-semibold">{value}</p>
+      {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
     </div>
   );
 }
 
-function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; video: { id: string; video_url: string; thumbnail_url: string | null; checkout_url: string | null; offer_time_seconds: number | null; player_settings?: unknown } | null; live?: { viewers?: { is_playing: boolean; position: number }[] } | undefined }) {
+function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null; videoUrl: string; live?: { viewers?: { is_playing: boolean; position: number }[] } | undefined }) {
   const vref = useRef<HTMLVideoElement>(null);
   const [cursor, setCursor] = useState(0);
-  const [hoveredLiveMarker, setHoveredLiveMarker] = useState<{ id: string; position: number } | null>(null);
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
   // Ajuste isotônico decrescente: reduz oscilações de amostras pequenas sem
   // inventar uma queda em cada ponto. A curva exibida nunca sobe, como em players de VSL.
-  // A curva deve refletir os valores observados em cada intervalo, sem suavização
-  // isotônica que apaga oscilações reais e cria longos trechos artificiais.
-  const series = useMemo(() => (
-    a.retention
-      .map(([t, n]) => ({ t, n, r: Math.max(0, Math.min(100, pct(n, a.plays))) }))
-      .sort((left, right) => left.t - right.t)
-  ), [a.retention, a.plays]);
+  const series = useMemo(() => {
+    const raw = a.retention.map(([t, n]) => ({ t, n, r: Math.max(0, Math.min(100, pct(n, a.plays))) }));
+    if (raw.length < 3) return raw;
+    const blocks: { start: number; end: number; sum: number; weight: number }[] = [];
+    raw.forEach((point, i) => {
+      blocks.push({ start: i, end: i, sum: point.r, weight: 1 });
+      // Para uma curva decrescente, blocos adjacentes não podem subir.
+      while (blocks.length > 1) {
+        const right = blocks[blocks.length - 1]!;
+        const left = blocks[blocks.length - 2]!;
+        if (left.sum / left.weight >= right.sum / right.weight) break;
+        blocks.splice(blocks.length - 2, 2, {
+          start: left.start, end: right.end,
+          sum: left.sum + right.sum, weight: left.weight + right.weight,
+        });
+      }
+    });
+    const fitted = [...raw];
+    for (const block of blocks) {
+      const value = block.sum / block.weight;
+      for (let i = block.start; i <= block.end; i++) fitted[i] = { ...raw[i]!, r: value };
+    }
+    return fitted;
+  }, [a]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
-  // Cada espectador ativo avança individualmente no eixo do tempo entre atualizações do servidor.
-  const liveViewers = (live?.viewers ?? []).filter(v => v.is_playing);
-  const [liveTick, setLiveTick] = useState(() => Date.now());
+  // Posição ao vivo: acompanha somente espectadores cuja reprodução está ativa.
+  // Se todos pausarem ou saírem, o marcador para no último ponto recebido.
+  const livePlaying = (live?.viewers ?? []).filter(v => v.is_playing);
+  const livePosition = livePlaying.length
+    ? livePlaying.reduce((sum, v) => sum + Number(v.position || 0), 0) / livePlaying.length
+    : null;
+  const [liveCursor, setLiveCursor] = useState<number | null>(null);
+  const [liveCursorRunning, setLiveCursorRunning] = useState(false);
+  const livePositionRef = useRef<number | null>(null);
+  const liveUpdatedAtRef = useRef<number>(Date.now());
 
+  // Interpola suavemente entre heartbeats do servidor. Pausa/saída congela o traço.
   useEffect(() => {
-    const timer = window.setInterval(() => setLiveTick(Date.now()), 250);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const liveMarkers = liveViewers.map(viewer => {
-    const elapsed = Math.max(0, Math.min(5, (liveTick - new Date(viewer.last_seen_at).getTime()) / 1000));
-    const position = Math.max(0, Math.min(a.duration, Number(viewer.position || 0) + elapsed));
-    let retention = series[0]?.r ?? 0;
-    for (let i = 0; i < series.length; i++) {
-      const point = series[i]!;
-      if (point.t > position) {
-        const previous = series[Math.max(0, i - 1)]!;
-        const span = point.t - previous.t;
-        const ratio = span > 0 ? (position - previous.t) / span : 0;
-        retention = previous.r + (point.r - previous.r) * Math.max(0, Math.min(1, ratio));
-        break;
-      }
-      retention = point.r;
+    if (livePosition == null) {
+      setLiveCursorRunning(false);
+      return;
     }
-    return { id: viewer.session_id, x: position, y: retention, position, retention };
-  });
+    livePositionRef.current = livePosition;
+    liveUpdatedAtRef.current = Date.now();
+    setLiveCursor(livePosition);
+    setLiveCursorRunning(true);
+    const timer = window.setInterval(() => {
+      const elapsed = (Date.now() - liveUpdatedAtRef.current) / 1000;
+      setLiveCursor((livePositionRef.current ?? livePosition) + elapsed);
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [livePosition, livePlaying.length]);
 
   const changes = useMemo(() => {
     const step = Math.max(1, Math.round(series.length / 60)); // ~60 windows
@@ -269,7 +292,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <Kpi label="Visualizações" value={String(a.views)} sub={`${a.unique_viewers} espectadores únicos`} />
         <Kpi label="Plays iniciados" value={String(a.plays)} sub={`${pct(a.plays, a.views).toFixed(1)}% play rate`} />
         <Kpi label="Tempo médio assistido" value={fmtTime(a.avg_watched)} sub={`pausado: ${fmtTime(a.avg_paused)}`} />
@@ -278,35 +301,32 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
         <Kpi label="Cliques no checkout" value={String(a.clicked_checkout)} sub={`${pct(a.clicked_checkout, a.plays).toFixed(1)}% dos plays`} />
       </div>
 
-      <div className="panel overflow-hidden border-border/80 p-0 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 px-5 py-5 md:px-6">
-          <div>
-            <div className="mb-1 flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">Comportamento da audiência</p></div>
-            <h2 className="text-xl font-semibold tracking-tight">Retenção da VSL</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Passe o cursor para inspecionar cada instante · clique no gráfico para navegar no vídeo.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-lg border border-border bg-background px-3 py-2 text-muted-foreground">Duração <strong className="ml-1 font-semibold text-foreground">{fmtTime(a.duration)}</strong></span>
-            <span className="rounded-lg border border-border bg-background px-3 py-2 text-muted-foreground">Amostragem <strong className="ml-1 font-semibold text-foreground">{a.bucket_size}s</strong></span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 font-medium text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {liveMarkers.length} ao vivo</span>
-          </div>
+      <div className="panel p-5">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-lg font-semibold">Retenção ao longo do vídeo</h2>
+          <p className="text-xs text-muted-foreground">Somente reprodução real — avanços pela barra não contam. Intervalo: {a.bucket_size}s · duração {fmtTime(a.duration)}</p>
         </div>
-        <div className="grid gap-5 p-4 md:p-5 lg:grid-cols-[210px_minmax(0,1fr)]">
-        <div className="space-y-3">
-          <div className="overflow-hidden rounded-xl border border-border/70 bg-black shadow-sm">
-            {video ? <VslPlayer video={video} preview /> : <div className="aspect-[9/16] w-full" />}
-          </div>
-          <div className="rounded-xl border border-border/70 bg-secondary/35 p-4 text-center">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Posição selecionada</p>
-            <p className="num mt-1 text-sm">{fmtTime(cursor)}</p>
-            <p className="num text-2xl font-semibold text-primary">{(series.reduce((r, p) => (p.t <= cursor ? p.r : r), series[0]?.r ?? 0)).toFixed(1)}%</p>
+        <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+        <div className="space-y-2">
+          <video
+            ref={vref}
+            src={videoUrl}
+            controls
+            preload="metadata"
+            playsInline
+            className="aspect-[9/16] w-full rounded-md bg-background object-contain"
+            onTimeUpdate={(e) => setCursor(e.currentTarget.currentTime)}
+          />
+          <div className="rounded-md bg-secondary p-2 text-center">
+            <p className="num text-sm">{fmtTime(cursor)}</p>
+            <p className="num text-lg font-semibold text-primary">{(series.reduce((r, p) => (p.t <= cursor ? p.r : r), series[0]?.r ?? 0)).toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground">ainda assistindo neste ponto</p>
           </div>
         </div>
-        <div className="min-w-0 rounded-xl border border-border/70 bg-background/50 p-2 pt-4 md:p-4 md:pt-5">
+        <div className="h-80 lg:h-auto lg:min-h-[420px]">
           <ResponsiveContainer>
             <AreaChart
-              data={chartSeries}
+              data={series}
               margin={{ left: -10, right: 10 }}
               className="cursor-crosshair"
               onClick={(st) => { const t = Number((st as { activeLabel?: number | string })?.activeLabel); if (!isNaN(t)) seek(t); }}
@@ -317,38 +337,49 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
                   <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="2 6" vertical={false} />
-              <XAxis dataKey="t" type="number" domain={[0, a.duration]} tickFormatter={fmtTime} stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} minTickGap={28} />
-              <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} width={42} />
+              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="t" type="number" domain={[0, a.duration]} tickFormatter={fmtTime} stroke="var(--muted-foreground)" fontSize={11} />
+              <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="var(--muted-foreground)" fontSize={11} />
               <Tooltip
-                cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "3 3", strokeWidth: 1 }}
+                cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "4 4" }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;
-                  const point = payload.find((entry) => entry.dataKey === "r")?.payload as { t?: number; n?: number; r?: number } | undefined;
+                  const point = payload[0]?.payload as { t: number; n: number; r: number } | undefined;
                   if (!point) return null;
                   return (
-                    <div className="w-[190px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl">
-                      <div className="border-b border-border px-3 py-2"><p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Audiência</p></div>
-                      <div className="space-y-2 p-3">
-                        <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">Tempo</span><span className="num text-sm font-semibold">{fmtTime(Number(label ?? point.t))}</span></div>
-                        <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">Espectadores</span><span className="num text-sm font-semibold">{Math.max(0, Number(point.n) || 0).toLocaleString("pt-BR")}</span></div>
-                        <div className="flex items-center justify-between gap-3 border-t border-border pt-2"><span className="text-xs text-muted-foreground">Retenção</span><span className="num text-sm font-bold text-primary">{Number(point.r).toFixed(1)}%</span></div>
+                    <div className="w-[210px] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
+                      <div className="border-b border-border px-3 py-2">
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Detalhes da audiência</p>
+                      </div>
+                      <div className="space-y-3 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm text-muted-foreground">Tempo</span>
+                          <span className="num text-sm font-semibold">{fmtTime(Number(label ?? point.t))}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm text-muted-foreground">Audiência</span>
+                          <span className="num text-sm font-semibold">{Math.max(0, Number(point.n) || 0).toLocaleString("pt-BR")} pessoas</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                          <span className="text-sm text-muted-foreground">Retenção</span>
+                          <span className="num rounded-md bg-primary/10 px-2 py-1 text-sm font-bold text-primary">{Number(point.r).toFixed(1)}%</span>
+                        </div>
                       </div>
                     </div>
                   );
                 }}
               />
+              {changes.drops.slice(0, 3).map((d) => <ReferenceLine key={d.to} x={d.to} stroke="var(--destructive)" strokeDasharray="2 4" />)}
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              <Area type="linear" dataKey="r" name="Retenção" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4, stroke: "var(--background)", strokeWidth: 2 }} isAnimationActive={false} />
-              {liveMarkers.map((marker) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} ifOverflow="extendDomain" shape={(props: { cx?: number; cy?: number }) => props.cx == null || props.cy == null ? <g /> : <circle cx={props.cx} cy={props.cy} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} style={{ cursor: "pointer" }} onMouseEnter={() => setHoveredLiveMarker({ id: marker.id, position: marker.position })} onMouseLeave={() => setHoveredLiveMarker(null)} /> } />)}
+              {liveCursor != null && <ReferenceLine x={liveCursor} stroke="var(--chart-3)" strokeWidth={2} strokeDasharray={liveCursorRunning ? undefined : "4 4"} label={{ value: liveCursorRunning ? "Ao vivo" : "Pausado", fill: "var(--chart-3)", fontSize: 11, position: "insideTopLeft" }} />}
+              <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
         </div>
-        {hoveredLiveMarker && <div className="mt-2 inline-flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm shadow-sm"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="font-semibold">{liveMarkers.length === 1 ? "1 pessoa assistindo agora" : `${liveMarkers.length} pessoas assistindo agora`}</span><span className="text-muted-foreground">Posição na VSL: {fmtTime(hoveredLiveMarker.position)}</span></div>}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-5 py-3 text-xs text-muted-foreground md:px-6"><span className="flex items-center gap-2"><span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Cada ponto verde representa uma sessão reproduzindo neste momento.</span><span>Retenção calculada sobre os plays registrados; avanço manual não conta.</span></div>
-        <div className="grid grid-cols-2 gap-2 border-t border-border/70 px-4 py-4 sm:grid-cols-5 md:px-6">
+        <p className="mt-2 text-xs text-muted-foreground">Linha cinza: posição do player de análise. Linha colorida: posição média dos espectadores que estão assistindo agora; ela para quando todos pausam ou saem e volta a andar quando retomam.</p>
+        <div className="mt-4 grid grid-cols-5 gap-2">
           {["10", "25", "50", "75", "100"].map((k) => (
             <div key={k} className="rounded-md bg-secondary p-3 text-center">
               <p className="text-xs text-muted-foreground">{k}% do vídeo</p>
@@ -359,67 +390,32 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="panel overflow-hidden p-0">
-          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Conversão</p><h2 className="text-lg font-semibold tracking-tight">Funil de conversão</h2>
-          <p className="mt-1 text-xs text-muted-foreground">Acompanhe a progressão entre reprodução, oferta e checkout.</p></div>
-          <div className="space-y-5 p-5 md:p-6">
-          <div className="space-y-5">
+      <div className="grid gap-4">
+        <div className="panel p-5">
+          <h2 className="mb-3 text-lg font-semibold">Funil de conversão</h2>
+          <div className="space-y-3">
             {funnel.map((f, i) => (
               <div key={f.name}>
-                <div className="mb-2 flex items-end justify-between gap-3"><div><p className="text-sm font-medium">{f.name}</p><p className="mt-0.5 text-xs text-muted-foreground">Etapa {i + 1} de {funnel.length}</p></div><div className="text-right"><p className="num text-base font-semibold">{f.n.toLocaleString("pt-BR")}</p><p className="num text-xs text-muted-foreground">{pct(f.n, a.plays).toFixed(1)}%</p></div></div>
-                <div className="h-3 overflow-hidden rounded-full bg-secondary">
-                  <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${pct(f.n, a.plays)}%`, opacity: 1 - i * 0.22 }} />
+                <div className="flex justify-between text-sm"><span>{f.name}</span><span className="num">{f.n} · {pct(f.n, a.plays).toFixed(1)}%</span></div>
+                <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${pct(f.n, a.plays)}%`, opacity: 1 - i * 0.25 }} />
                 </div>
                 {i > 0 && <p className="mt-1 text-xs text-muted-foreground">{pct(f.n, funnel[i - 1]!.n).toFixed(1)}% da etapa anterior</p>}
               </div>
             ))}
           </div>
         </div>
-        <div className="panel overflow-hidden p-0">
-          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Diagnóstico</p><h2 className="text-lg font-semibold tracking-tight">Momentos críticos</h2><p className="mt-1 text-xs text-muted-foreground">Maiores quedas e recuperações de retenção ao longo da VSL.</p></div>
-          <div className="space-y-5 p-5 md:p-6">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-destructive">Maiores quedas</p>
-              {changes.drops.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma queda relevante neste período.</p> : (
-                <div className="space-y-2">
-                  {changes.drops.map((w) => (
-                    <button key={`d-${w.from}`} type="button" onClick={() => seek(w.from)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-left text-sm transition-colors hover:border-destructive/40">
-                      <span className="num font-medium">{fmtTime(w.from)} → {fmtTime(w.to)}</span>
-                      <span className="num font-semibold text-destructive">{w.d.toFixed(1)} pts</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-600">Recuperações</p>
-              {changes.gains.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma recuperação relevante neste período.</p> : (
-                <div className="space-y-2">
-                  {changes.gains.map((w) => (
-                    <button key={`g-${w.from}`} type="button" onClick={() => seek(w.from)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-left text-sm transition-colors hover:border-emerald-500/40">
-                      <span className="num font-medium">{fmtTime(w.from)} → {fmtTime(w.to)}</span>
-                      <span className="num font-semibold text-emerald-600">+{w.d.toFixed(1)} pts</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-        <div className="panel overflow-hidden p-0">
-          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Tendência</p><h2 className="text-lg font-semibold tracking-tight">Desempenho por dia</h2><p className="mt-1 text-xs text-muted-foreground">Compare visualizações, reproduções e cliques no período selecionado.</p></div>
-          <div className="p-4 md:p-5">
-          <div className="h-64">
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="panel p-5 lg:col-span-2">
+          <h2 className="mb-3 text-lg font-semibold">Por dia</h2>
+          <div className="h-56">
             <ResponsiveContainer>
               <BarChart data={a.daily}>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="2 6" vertical={false} />
-                <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
+                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={11} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={11} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }} cursor={{ fill: "var(--accent)" }} />
                 <Bar dataKey="views" name="Visualizações" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
                 <Bar dataKey="plays" name="Plays" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
@@ -428,20 +424,17 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
             </ResponsiveContainer>
           </div>
         </div>
-        </div>
-        <div className="panel overflow-hidden p-0">
-          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Interações</p><h2 className="text-lg font-semibold tracking-tight">Eventos registrados</h2><p className="mt-1 text-xs text-muted-foreground">Ações detectadas dentro do player no período selecionado.</p></div>
-          <div className="px-5 py-3 md:px-6">
+        <div className="panel p-5">
+          <h2 className="mb-3 text-lg font-semibold">Eventos registrados</h2>
           {([
             ["Play", "play"], ["Pausa", "pause"], ["Retomada", "resume"], ["Avanço", "seek_forward"],
             ["Retorno", "seek_backward"], ["Abandono", "abandon"], ["Chegada ao CTA", "cta_reached"],
             ["Clique no checkout", "checkout_click"], ["Assistiu até o fim", "complete"],
           ] as [string, string][]).map(([l, k]) => (
-            <div key={k} className="flex items-center justify-between gap-3 border-b border-border/70 py-2.5 text-sm last:border-0">
-              <span className="text-muted-foreground">{l}</span><span className="num rounded-md bg-secondary px-2 py-1 text-xs font-semibold">{ev(k)}</span>
+            <div key={k} className="flex justify-between border-b border-border py-1.5 text-sm last:border-0">
+              <span className="text-muted-foreground">{l}</span><span className="num">{ev(k)}</span>
             </div>
           ))}
-        </div>
         </div>
       </div>
     </>
