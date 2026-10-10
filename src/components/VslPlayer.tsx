@@ -174,7 +174,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           muted
           loop={!preview && cfg.autoplay}
           playsInline
-          preload="metadata"
+          preload={preview ? "metadata" : "auto"}
           crossOrigin={cfg.captions && cfg.captionsUrl ? "anonymous" : undefined}
           poster={video.thumbnail_url ?? undefined}
           disablePictureInPicture
