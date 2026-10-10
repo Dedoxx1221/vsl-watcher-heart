@@ -43,6 +43,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   const [blocked, setBlocked] = useState(false);
   const [resumeAt, setResumeAt] = useState<number | null>(null);
   const [cur, setCur] = useState(0);
+  const [videoRatio, setVideoRatio] = useState<number | null>(null);
   const posKey = `vsl_pos_${video.id}`;
   const ref = useRef<HTMLVideoElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
@@ -162,7 +163,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   if (blocked) return null;
 
   return (
-    <div ref={wrap} style={style} className={"relative box-border mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent " + (cfg.aspect === "9:16" ? "max-w-[420px]" : "")}>
+    <div ref={wrap} style={style} className={"relative box-border mx-auto w-full min-w-0 max-w-full overflow-visible bg-transparent " + ((videoRatio ?? (cfg.aspect === "9:16" ? 9 / 16 : 16 / 9)) < 1 ? "max-w-[420px]" : "")}>
       {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
         <div className="relative z-20 box-border w-full min-w-0 max-w-full overflow-visible px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign, backgroundColor: "transparent", backgroundImage: "none" }}>
           {cfg.headlineUseImage ? (
@@ -179,7 +180,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           })()}
         </div>
       )}
-      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent leading-none " + (cfg.aspect === "9:16" ? "aspect-[9/16] max-w-[480px]" : "aspect-video") + (cfg.rounded ? " rounded-xl" : "")}>
+      <div className={"relative mx-auto w-full min-w-0 max-w-full overflow-hidden bg-transparent leading-none " + (videoRatio && videoRatio < 1 ? "max-w-[420px] " : "") + (cfg.rounded ? " rounded-xl" : "")} style={{ aspectRatio: String(videoRatio ?? (cfg.aspect === "9:16" ? 9 / 16 : 16 / 9)) }}>
         <video
           ref={ref}
           src={video.video_url}
@@ -194,7 +195,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           controlsList="nodownload noplaybackrate noremoteplayback"
           className="absolute inset-0 block h-full w-full max-w-full bg-transparent object-contain"
           onClick={togglePause}
-          onLoadedMetadata={() => { tracker.current?.setDuration(el().duration); update(); }}
+          onLoadedMetadata={() => { const v = el(); if (v.videoWidth > 0 && v.videoHeight > 0) setVideoRatio(v.videoWidth / v.videoHeight); tracker.current?.setDuration(v.duration); update(); }}
           onDurationChange={update}
           onPlay={() => { T()?.onPlay(el().currentTime); const r = cfg.turbo ? cfg.turboSpeed || 1 : 1; if (el().playbackRate !== r) el().playbackRate = r; }}
           onPause={() => { if (!el().ended) T()?.onPause(el().currentTime); }}
