@@ -479,13 +479,13 @@ function Editor() {
                 <Button type="button" variant="outline" size="sm" onClick={() => {
                   const ratio = s.aspect === "9:16" ? 16 / 9 : 9 / 16;
                   const image = new Image();
-                  image.onload = () => set("autoplayImageSize", Math.min(95, 95 * ratio * image.naturalWidth / Math.max(1, image.naturalHeight)));
+                  image.onload = () => set("autoplayImageSize", 95 * ratio * image.naturalWidth / Math.max(1, image.naturalHeight));
                   image.src = s.autoplayImage || video.thumbnail_url || "";
                 }}>Enquadrar largura</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => {
                   const ratio = s.aspect === "9:16" ? 16 / 9 : 9 / 16;
                   const image = new Image();
-                  image.onload = () => set("autoplayImageSize", Math.min(100, 95 * ratio * image.naturalWidth / Math.max(1, image.naturalHeight)));
+                  image.onload = () => set("autoplayImageSize", 95 * ratio * image.naturalWidth / Math.max(1, image.naturalHeight));
                   image.src = s.autoplayImage || video.thumbnail_url || "";
                 }}>Enquadrar altura</Button>
               </div>
