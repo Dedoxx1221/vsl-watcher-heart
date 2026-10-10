@@ -328,16 +328,28 @@ function Editor() {
     const id = video.id;
     const vertical = s.aspect === "9:16";
     const maxWidth = vertical ? "420px" : "960px";
-    const height = vertical ? "calc(177.78% + 140px)" : "calc(56.25% + 140px)";
-    const code = `<div style="position:relative;width:100%;max-width:${maxWidth};margin:0 auto;padding-bottom:${height};background:transparent;overflow:hidden">
+    const code = `<div id="vexora-embed-${id}" style="position:relative;width:100%;max-width:${maxWidth};margin:0 auto;background:transparent;overflow:hidden">
   <iframe
     src="${origin}/embed/${id}"
     title="Vexora video player"
     loading="eager"
     allow="autoplay; fullscreen; picture-in-picture"
     allowfullscreen
-    style="position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent"
+    style="display:block;position:relative;width:100%;height:500px;border:0;background:transparent"
   ></iframe>
+  <script>
+    (function(){
+      var frame=document.querySelector('#vexora-embed-${id} iframe');
+      if(!frame) return;
+      window.addEventListener('message',function(event){
+        if(event.origin!=='${origin}' || event.source!==frame.contentWindow) return;
+        var height=event.data && Number(event.data.vslHeight);
+        if(Number.isFinite(height) && height>0){
+          frame.style.height=Math.ceil(height)+'px';
+        }
+      });
+    })();
+  </script>
 </div>`;
     try {
       await navigator.clipboard.writeText(code);
@@ -416,7 +428,7 @@ function Editor() {
         </div>
       </div>
 
-      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <div className="panel overflow-hidden rounded-xl">
           <Section id="video-settings" title="Configurações de Vídeo">
             <div className="space-y-3 py-3">
