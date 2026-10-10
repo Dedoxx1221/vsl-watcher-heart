@@ -222,13 +222,6 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <>
-              {preview && onAutoplayImageTransform && (
-                <div className="pointer-events-none absolute inset-0 z-[4]">
-                  <div className="absolute inset-y-0 left-1/2 border-l border-dashed border-white/70" />
-                  <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-white/70" />
-                  <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-primary/80 shadow" />
-                </div>
-              )}
               <img
                 src={cfg.autoplayImage || video.thumbnail_url!}
                 alt="Toque para ouvir"
@@ -250,7 +243,12 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                 onPointerMove={preview && onAutoplayImageTransform ? (e) => {
                   const d = imageDrag.current; if (!d || d.mode !== "move") return;
                   e.preventDefault(); e.stopPropagation();
-                  onAutoplayImageTransform({ x: Math.min(100, Math.max(0, d.x + (e.clientX - d.startX) / d.width * 100)), y: Math.min(100, Math.max(0, d.y + (e.clientY - d.startY) / d.height * 100)), size: d.size });
+                  const rawX = Math.min(100, Math.max(0, d.x + (e.clientX - d.startX) / d.width * 100));
+                  const rawY = Math.min(100, Math.max(0, d.y + (e.clientY - d.startY) / d.height * 100));
+                  const magnet = 4;
+                  const x = Math.abs(rawX - 50) <= magnet ? 50 : rawX;
+                  const y = Math.abs(rawY - 50) <= magnet ? 50 : rawY;
+                  onAutoplayImageTransform({ x, y, size: d.size });
                 } : undefined}
                 onPointerUp={() => { imageDrag.current = null; }}
                 onPointerCancel={() => { imageDrag.current = null; }}
