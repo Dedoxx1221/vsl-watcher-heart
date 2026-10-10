@@ -70,99 +70,81 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Analytics de VSL</p>
-          <h1 className="text-3xl font-bold">{video?.name}</h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Select value={videoId ?? ""} onValueChange={setVideoId}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-            <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
-          </Select>
-          <Select value={period} onValueChange={(v) => setPeriod(v as keyof typeof PERIODS)}>
-            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-            <SelectContent>{Object.entries(PERIODS).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent>
-          </Select>
-          <Select value={campaign} onValueChange={setCampaign}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Campanha" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all">Todas campanhas</SelectItem>
-              {(a?.campaigns ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Radio className="h-5 w-5 text-emerald-500" />
-            <h2 className="text-xl font-bold">Ao vivo</h2>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />Atualiza a cada 5 s</span>
-          </div>
-          <p className="text-xs text-muted-foreground">Sessões vistas nos últimos 35 segundos</p>
-        </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Kpi label="Espectadores ativos" value={String(live?.active_count ?? 0)} sub="Player aberto recentemente" />
-          <Kpi label="Assistindo agora" value={String(live?.playing_count ?? 0)} sub="Reprodução em andamento" />
-          <Kpi label="Localizações detectadas" value={String((live?.geo ?? []).filter(g => g.country !== "Desconhecido").length)} sub="País/região/cidade quando disponíveis" />
-          <Kpi label="Fontes UTM distintas" value={String(new Set((live?.viewers ?? []).map(v => v.utm_source).filter(Boolean)).size)} sub="Entre as sessões ativas" />
-        </div>
-        <div className="panel overflow-hidden">
-          <div className="border-b border-border p-4">
-            <h3 className="font-semibold">Espectadores neste momento</h3>
-            <p className="mt-1 text-xs text-muted-foreground">Veja os dados agregados dos espectadores ativos, sem informações desnecessárias por sessão.</p>
-          </div>
-          <Tabs defaultValue="retencao" className="w-full">
-            <div className="overflow-x-auto border-b border-border px-3">
-              <TabsList className="h-auto min-w-max bg-transparent p-0">
-                <TabsTrigger value="retencao" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><ChartNoAxesColumn className="h-4 w-4" />Retenção geral</TabsTrigger>
-                <TabsTrigger value="paises" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Globe className="h-4 w-4" />Países</TabsTrigger>
-                <TabsTrigger value="origem" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><MousePointerClick className="h-4 w-4" />Origem</TabsTrigger>
-                <TabsTrigger value="navegadores" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Compass className="h-4 w-4" />Navegadores</TabsTrigger>
-                <TabsTrigger value="dispositivos" className="gap-2 rounded-none border-b-2 border-transparent px-3 py-3 data-[state=active]:border-primary"><Monitor className="h-4 w-4" />Dispositivos</TabsTrigger>
-              </TabsList>
+      <header className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              <ChartNoAxesColumn className="h-4 w-4" /> Central de inteligência
             </div>
-            <TabsContent value="retencao" className="m-0 p-4">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><h4 className="font-medium">Posição atual no vídeo</h4><p className="text-xs text-muted-foreground">Distribuição dos espectadores ativos por trecho da VSL.</p></div><span className="text-sm text-muted-foreground">{live?.active_count ?? 0} espectadores</span></div>
-              <div className="space-y-4">
-                {[
-                  { label: "0–25% do vídeo", min: 0, max: 25 },
-                  { label: "25–50% do vídeo", min: 25, max: 50 },
-                  { label: "50–75% do vídeo", min: 50, max: 75 },
-                  { label: "75–100% do vídeo", min: 75, max: 100 },
-                ].map((bucket) => {
-                  const duration = Number(video?.duration_seconds ?? 0);
-                  const viewers = (live?.viewers ?? []).filter(v => {
-                    const p = duration > 0 ? (Number(v.position) / duration) * 100 : 0;
-                    return p >= bucket.min && (p < bucket.max || bucket.max === 100 && p <= 100);
-                  }).length;
-                  const total = live?.active_count ?? 0;
-                  return <div key={bucket.label}><div className="mb-1.5 flex justify-between gap-3 text-sm"><span>{bucket.label}</span><span className="tabular-nums text-muted-foreground">{viewers} ({total ? (viewers / total * 100).toFixed(0) : 0}%)</span></div><div className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary transition-all" style={{ width: total ? `${viewers / total * 100}%` : "0%" }} /></div></div>;
-                })}
-              </div>
-              {!live?.viewers?.length && <p className="pt-4 text-sm text-muted-foreground">Nenhum espectador ativo no momento. Abra uma VSL em outra aba para testar.</p>}
-            </TabsContent>
-            <TabsContent value="paises" className="m-0 p-4">
-              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.country || "Desconhecido")} total={live?.active_count ?? 0} empty="Os países aparecerão quando houver espectadores ativos e o servidor disponibilizar a localização." />
-            </TabsContent>
-            <TabsContent value="origem" className="m-0 p-4">
-              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => {
-                const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / ");
-                if (utm) return utm;
-                if (!v.referrer) return "Direto / desconhecido";
-                try { return new URL(v.referrer).hostname; } catch { return v.referrer; }
-              })} total={live?.active_count ?? 0} empty="As origens aparecerão conforme os espectadores acessarem a VSL." />
-            </TabsContent>
-            <TabsContent value="navegadores" className="m-0 p-4">
-              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Os navegadores aparecerão quando o endpoint disponibilizar essa informação para cada sessão." />
-            </TabsContent>
-            <TabsContent value="dispositivos" className="m-0 p-4">
-              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Os dispositivos aparecerão conforme houver espectadores ativos." />
-            </TabsContent>
-          </Tabs>
+            <h1 className="truncate text-3xl font-bold tracking-tight">{video?.name ?? "Analytics"}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Entenda onde a audiência continua, onde abandona e o que leva ao checkout.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Select value={videoId ?? ""} onValueChange={setVideoId}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Selecionar VSL" /></SelectTrigger>
+              <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={period} onValueChange={(v) => setPeriod(v as keyof typeof PERIODS)}>
+              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectContent>{Object.entries(PERIODS).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={campaign} onValueChange={setCampaign}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar campanha" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">Todas campanhas</SelectItem>
+                {(a?.campaigns ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border pb-4 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-2"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Dados ao vivo</span>
+          <span>·</span><span>Atualização em tempo real</span>
+          <span>·</span><span>Período: {PERIODS[period]}</span>
+          {campaign !== "__all" && <><span>·</span><span className="max-w-48 truncate">Campanha: {campaign}</span></>}
+        </div>
+      </header>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base font-semibold">Audiência agora</h2>
+            <p className="text-xs text-muted-foreground">Sessões vistas nos últimos 35 segundos · sincronizado a cada 5 s</p>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-600">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Ao vivo
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <div className="panel flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Radio className="h-5 w-5" /></div>
+            <div><p className="text-xs text-muted-foreground">Espectadores ativos</p><p className="num text-2xl font-semibold">{live?.active_count ?? 0}</p></div>
+          </div>
+          <div className="panel flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600"><ChartNoAxesColumn className="h-5 w-5" /></div>
+            <div><p className="text-xs text-muted-foreground">Assistindo neste instante</p><p className="num text-2xl font-semibold">{live?.playing_count ?? 0}</p></div>
+          </div>
+          <div className="panel flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600"><Globe className="h-5 w-5" /></div>
+            <div><p className="text-xs text-muted-foreground">Origens identificadas</p><p className="num text-2xl font-semibold">{new Set((live?.viewers ?? []).map(v => v.utm_source || (v.referrer ? (() => { try { return new URL(v.referrer!).hostname; } catch { return v.referrer; } })() : null)).filter(Boolean)).size}</p></div>
+          </div>
+          <div className="panel flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600"><MapPin className="h-5 w-5" /></div>
+            <div><p className="text-xs text-muted-foreground">Localizações conhecidas</p><p className="num text-2xl font-semibold">{new Set((live?.viewers ?? []).map(v => [v.city, v.region, v.country].filter(Boolean).join(", ")).filter(Boolean)).size}</p></div>
+          </div>
+        </div>
+        <details className="panel group">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+            <div><p className="text-sm font-semibold">Explorar audiência ao vivo</p><p className="mt-0.5 text-xs text-muted-foreground">Países, origens, navegadores e dispositivos sem poluir a visão principal</p></div>
+            <span className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground group-open:bg-secondary">Ver detalhes <span className="ml-1 inline-block transition-transform group-open:rotate-180">⌄</span></span>
+          </summary>
+          <div className="grid gap-5 border-t border-border p-4 md:grid-cols-2 xl:grid-cols-4">
+            <div><h3 className="mb-3 text-sm font-semibold">Países</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.country || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem localização disponível." /></div>
+            <div><h3 className="mb-3 text-sm font-semibold">Origem / UTM</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => { const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / "); if (utm) return utm; if (!v.referrer) return "Direto / desconhecido"; try { return new URL(v.referrer).hostname; } catch { return v.referrer; } })} total={live?.active_count ?? 0} empty="Sem origem identificada." /></div>
+            <div><h3 className="mb-3 text-sm font-semibold">Navegadores</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de navegador." /></div>
+            <div><h3 className="mb-3 text-sm font-semibold">Dispositivos</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de dispositivo." /></div>
+          </div>
+        </details>
       </section>
 
       {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} live={live} />}
@@ -292,7 +274,7 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Kpi label="Visualizações" value={String(a.views)} sub={`${a.unique_viewers} espectadores únicos`} />
         <Kpi label="Plays iniciados" value={String(a.plays)} sub={`${pct(a.plays, a.views).toFixed(1)}% play rate`} />
         <Kpi label="Tempo médio assistido" value={fmtTime(a.avg_watched)} sub={`pausado: ${fmtTime(a.avg_paused)}`} />
