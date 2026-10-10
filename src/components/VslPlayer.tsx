@@ -179,7 +179,7 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
           onClick={togglePause}
           onLoadedMetadata={() => { tracker.current?.setDuration(el().duration); update(); }}
           onDurationChange={update}
-          onPlay={() => T()?.onPlay(el().currentTime)}
+          onPlay={() => { T()?.onPlay(el().currentTime); const r = cfg.turbo ? cfg.turboSpeed || 1 : 1; if (el().playbackRate !== r) el().playbackRate = r; }}
           onPause={() => { if (!el().ended) T()?.onPause(el().currentTime); }}
           onEnded={() => { T()?.onEnded(el().currentTime); if (started.current) setEnded(true); update(); }}
           onSeeking={() => {
@@ -188,7 +188,6 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
             if (v.currentTime > maxWatched.current + 1) { internalSeek.current = true; v.currentTime = maxWatched.current; }
           }}
           onSeeked={() => { internalSeek.current = false; T()?.onTime(el().currentTime, el().playbackRate); update(); }}
-          onPlay={() => { const r = cfg.turbo ? cfg.turboSpeed || 1 : 1; if (el().playbackRate !== r) el().playbackRate = r; }}
           onRateChange={() => { const r = cfg.turbo ? cfg.turboSpeed || 1 : 1; if (cfg.lockSpeed && el().playbackRate !== r) el().playbackRate = r; }}
           onTimeUpdate={() => { T()?.onTime(el().currentTime, el().playbackRate); update(); }}
         >
