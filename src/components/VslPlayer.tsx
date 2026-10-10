@@ -58,7 +58,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (preview) { if (cfg.autoplay) ref.current?.play().catch(() => {}); return; }
+    if (preview) { ref.current?.pause(); return; }
     const params = new URLSearchParams(window.location.search);
     let hostParams = params;
     try { hostParams = new URLSearchParams(window.top?.location.search ?? ""); } catch { /* cross-origin */ }
@@ -167,13 +167,13 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
         <video
           ref={ref}
           src={video.video_url}
-          autoPlay={cfg.autoplay}
+          autoPlay={!preview && cfg.autoplay}
           muted
-          loop={cfg.autoplay}
+          loop={!preview && cfg.autoplay}
           playsInline
           preload={cfg.turbo || cfg.autoplay ? "auto" : "metadata"}
           crossOrigin={cfg.captions && cfg.captionsUrl ? "anonymous" : undefined}
-          poster={!cfg.autoplay ? video.thumbnail_url ?? undefined : undefined}
+          poster={preview || !cfg.autoplay ? video.thumbnail_url ?? undefined : undefined}
           disablePictureInPicture
           controlsList="nodownload noplaybackrate noremoteplayback"
           className={"block h-auto w-full bg-background object-contain " + (cfg.aspect === "9:16" ? "aspect-[9/16]" : "aspect-video")}
@@ -216,8 +216,8 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
             <button onClick={() => start(0)} className="text-sm text-muted-foreground underline">Começar do início</button>
           </div>
         )}
-        {overlay && (
-          <div role="button" tabIndex={0} aria-label="Toque para ouvir" onClick={() => start(0)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") start(0); }} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
+        {(preview ? cfg.autoplay : overlay) && (
+          <div role="button" tabIndex={0} aria-label="Toque para ouvir" onClick={() => { if (!preview) start(0); }} onKeyDown={(e) => { if (!preview && (e.key === "Enter" || e.key === " ")) start(0); }} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <img
