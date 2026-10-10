@@ -327,9 +327,9 @@ function Editor() {
     const origin = window.location.origin;
     const id = video.id;
     const vertical = s.aspect === "9:16";
-    const ratio = vertical ? "9 / 16" : "16 / 9";
     const maxWidth = vertical ? "420px" : "960px";
-    const code = `<div style="position:relative;width:100%;max-width:${maxWidth};margin:0 auto;aspect-ratio:${ratio};background:transparent;overflow:hidden">
+    const height = vertical ? "calc(177.78% + 140px)" : "calc(56.25% + 140px)";
+    const code = `<div style="position:relative;width:100%;max-width:${maxWidth};margin:0 auto;padding-bottom:${height};background:transparent;overflow:hidden">
   <iframe
     src="${origin}/embed/${id}"
     title="Vexora video player"
