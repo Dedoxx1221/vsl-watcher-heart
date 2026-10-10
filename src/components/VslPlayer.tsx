@@ -224,6 +224,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                 src={cfg.autoplayImage || video.thumbnail_url!}
                 alt="Toque para ouvir"
                 draggable={false}
+                onClick={(e) => { if (preview && onAutoplayImageTransform) e.stopPropagation(); }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
                   e.preventDefault(); e.stopPropagation();
                   const box = wrap.current?.getBoundingClientRect();
@@ -253,6 +254,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                 <button
                   key={`${sx}-${sy}`}
                   type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                   aria-label="Redimensionar imagem"
                   title="Arraste a alça do canto para aumentar ou diminuir, como no Paint"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
