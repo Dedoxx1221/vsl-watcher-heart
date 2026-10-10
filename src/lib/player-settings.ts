@@ -1,4 +1,5 @@
 export type MiniHook = { at: number; text: string; dur: number };
+export type HeadlineSegment = { text: string; color?: string; size?: number; bold?: boolean; underline?: boolean };
 
 export type PlayerSettings = {
   // Estilo
@@ -25,6 +26,11 @@ export type PlayerSettings = {
   headline: boolean;
   headlineText: string;
   headlineColor: string;
+  headlineAlign: "left" | "center" | "right";
+  headlineFontSize: number;
+  headlineBold: boolean;
+  headlineUnderline: boolean;
+  headlineSegments: HeadlineSegment[];
   // Filtro de tráfego
   trafficFilter: boolean;
   trafficParam: string;
@@ -80,6 +86,11 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   headline: false,
   headlineText: "Assista até o final — o melhor vem depois",
   headlineColor: "#ffffff",
+  headlineAlign: "center",
+  headlineFontSize: 24,
+  headlineBold: true,
+  headlineUnderline: false,
+  headlineSegments: [],
   trafficFilter: false,
   trafficParam: "utm_source",
   trafficRedirect: "",
@@ -108,5 +119,5 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
 
 export function parseSettings(raw: unknown): PlayerSettings {
   const o = raw && typeof raw === "object" ? (raw as Partial<PlayerSettings>) : {};
-  return { ...DEFAULT_SETTINGS, ...o, hookList: Array.isArray(o.hookList) ? o.hookList : [], ctaAlways: false };
+  return { ...DEFAULT_SETTINGS, ...o, hookList: Array.isArray(o.hookList) ? o.hookList : [], headlineSegments: Array.isArray(o.headlineSegments) ? o.headlineSegments : [], ctaAlways: false };
 }
