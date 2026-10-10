@@ -403,6 +403,37 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
             ))}
           </div>
         </div>
+        <div className="panel overflow-hidden p-0">
+          <div className="border-b border-border/70 px-5 py-4 md:px-6"><p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Diagnóstico</p><h2 className="text-lg font-semibold tracking-tight">Momentos críticos</h2><p className="mt-1 text-xs text-muted-foreground">Maiores quedas e recuperações de retenção ao longo da VSL.</p></div>
+          <div className="space-y-5 p-5 md:p-6">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-destructive">Maiores quedas</p>
+              {changes.drops.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma queda relevante neste período.</p> : (
+                <div className="space-y-2">
+                  {changes.drops.map((w) => (
+                    <button key={`d-${w.from}`} type="button" onClick={() => seek(w.from)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-left text-sm transition-colors hover:border-destructive/40">
+                      <span className="num font-medium">{fmtTime(w.from)} → {fmtTime(w.to)}</span>
+                      <span className="num font-semibold text-destructive">{w.d.toFixed(1)} pts</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-600">Recuperações</p>
+              {changes.gains.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma recuperação relevante neste período.</p> : (
+                <div className="space-y-2">
+                  {changes.gains.map((w) => (
+                    <button key={`g-${w.from}`} type="button" onClick={() => seek(w.from)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-left text-sm transition-colors hover:border-emerald-500/40">
+                      <span className="num font-medium">{fmtTime(w.from)} → {fmtTime(w.to)}</span>
+                      <span className="num font-semibold text-emerald-600">+{w.d.toFixed(1)} pts</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
