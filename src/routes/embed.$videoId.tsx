@@ -86,7 +86,9 @@ function Embed() {
           padding: 0 !important;
         }
         #vexora-embed-root,
-        #vexora-embed-root *:not(video):not(img) {
+        #vexora-embed-root > div,
+        #vexora-embed-root .vexora-headline,
+        #vexora-embed-root .vexora-headline * {
           background-color: transparent !important;
           background-image: none !important;
           box-shadow: none !important;
