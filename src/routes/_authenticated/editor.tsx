@@ -126,7 +126,7 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
   };
   for (const child of Array.from(root.childNodes)) walk(child);
   while (result.length && result[result.length - 1]?.text === "\n") result.pop();
-  return result.map((part) => ({
+  return result.map((part): HeadlineSegment => {const o = {(part) => ({
     ...part,
     ...(part.color === defaultColor ? { color: undefined } : {}),
     ...(part.size === defaultSize ? { size: undefined } : {}),
@@ -245,8 +245,8 @@ function Editor() {
       offset = partEnd;
       const cuts = [...new Set([partStart, Math.max(partStart, Math.min(partEnd, start)), Math.max(partStart, Math.min(partEnd, end)), partEnd])].sort((a, b) => a - b);
       for (let i = 0; i < cuts.length - 1; i++) {
-        const a = cuts[i];
-        const b = cuts[i + 1];
+        const a = cuts[i]!;
+        const b = cuts[i + 1]!;
         if (b <= a) continue;
         const selected = a < end && b > start;
         next.push({ ...part, ...(selected ? patch : {}), text: text.slice(a, b) });
