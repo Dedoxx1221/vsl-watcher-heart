@@ -224,7 +224,6 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           <div role="button" tabIndex={0} aria-label="Toque para ouvir" onClick={() => { if (!preview) start(0); }} onKeyDown={(e) => { if (!preview && (e.key === "Enter" || e.key === " ")) start(0); }} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
-              <>
               <div
                 className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "pointer-events-none")}
                 onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); } }}
