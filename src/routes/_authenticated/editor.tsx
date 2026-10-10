@@ -246,8 +246,8 @@ function Editor() {
       offset = partEnd;
       const cuts = [...new Set([partStart, Math.max(partStart, Math.min(partEnd, start)), Math.max(partStart, Math.min(partEnd, end)), partEnd])].sort((a, b) => a - b);
       for (let i = 0; i < cuts.length - 1; i++) {
-        const a = cuts[i];
-        const b = cuts[i + 1];
+        const a = cuts[i]!;
+        const b = cuts[i + 1]!;
         if (b <= a) continue;
         const selected = a < end && b > start;
         next.push({ ...part, ...(selected ? patch : {}), text: text.slice(a, b) });
