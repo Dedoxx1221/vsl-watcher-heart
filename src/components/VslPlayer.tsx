@@ -226,7 +226,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <>
               <div
-                className={"absolute z-[4] relative max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "pointer-events-none")}
+                className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "pointer-events-none")}
                 onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); } }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
                   if ((e.target as HTMLElement).dataset.resizeHandle) return;
