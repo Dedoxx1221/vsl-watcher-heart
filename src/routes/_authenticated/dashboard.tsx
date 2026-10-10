@@ -69,7 +69,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-[1600px] space-y-7 pb-8">
       <header className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
@@ -186,10 +186,11 @@ function LiveBreakdown({ items, total, empty }: { items: LiveBreakdownItem[]; to
 
 function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="panel p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="num mt-1 text-2xl font-semibold">{value}</p>
-      {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
+    <div className="panel group relative overflow-hidden p-4 transition-colors hover:border-primary/30 hover:bg-card/80 md:p-5">
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-primary/0 transition-colors group-hover:bg-primary/50" />
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="num mt-2 text-2xl font-semibold tracking-tight md:text-[1.75rem]">{value}</p>
+      {sub && <p className="mt-1.5 min-h-4 text-xs leading-relaxed text-muted-foreground">{sub}</p>}
     </div>
   );
 }
@@ -295,7 +296,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
         <Kpi label="Visualizações" value={String(a.views)} sub={`${a.unique_viewers} espectadores únicos`} />
         <Kpi label="Plays iniciados" value={String(a.plays)} sub={`${pct(a.plays, a.views).toFixed(1)}% play rate`} />
         <Kpi label="Tempo médio assistido" value={fmtTime(a.avg_watched)} sub={`pausado: ${fmtTime(a.avg_paused)}`} />
@@ -304,27 +305,35 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
         <Kpi label="Cliques no checkout" value={String(a.clicked_checkout)} sub={`${pct(a.clicked_checkout, a.plays).toFixed(1)}% dos plays`} />
       </div>
 
-      <div className="panel p-5">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lg font-semibold">Retenção ao longo do vídeo</h2>
-          <p className="text-xs text-muted-foreground">Somente reprodução real — avanços pela barra não contam. Intervalo: {a.bucket_size}s · duração {fmtTime(a.duration)}</p>
+      <div className="panel overflow-hidden border-border/80 p-0 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 px-5 py-5 md:px-6">
+          <div>
+            <div className="mb-1 flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">Comportamento da audiência</p></div>
+            <h2 className="text-xl font-semibold tracking-tight">Retenção da VSL</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Passe o cursor para inspecionar cada instante · clique no gráfico para navegar no vídeo.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-lg border border-border bg-background px-3 py-2 text-muted-foreground">Duração <strong className="ml-1 font-semibold text-foreground">{fmtTime(a.duration)}</strong></span>
+            <span className="rounded-lg border border-border bg-background px-3 py-2 text-muted-foreground">Amostragem <strong className="ml-1 font-semibold text-foreground">{a.bucket_size}s</strong></span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 font-medium text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {liveMarkers.length} ao vivo</span>
+          </div>
         </div>
-        <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+        <div className="grid gap-5 p-4 md:p-5 lg:grid-cols-[210px_minmax(0,1fr)]">
         <div className="space-y-3">
-          <div className="overflow-hidden rounded-2xl border border-border/70 bg-black shadow-xl">
+          <div className="overflow-hidden rounded-xl border border-border/70 bg-black shadow-sm">
             {video ? <VslPlayer video={video} preview /> : <div className="aspect-[9/16] w-full" />}
           </div>
-          <div className="rounded-xl border border-border/70 bg-card p-3 text-center shadow-sm">
+          <div className="rounded-xl border border-border/70 bg-secondary/35 p-4 text-center">
             <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Posição selecionada</p>
             <p className="num mt-1 text-sm">{fmtTime(cursor)}</p>
             <p className="num text-2xl font-semibold text-primary">{(series.reduce((r, p) => (p.t <= cursor ? p.r : r), series[0]?.r ?? 0)).toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground">ainda assistindo neste ponto</p>
           </div>
         </div>
-        <div className="h-80 lg:h-auto lg:min-h-[420px]">
+        <div className="min-w-0 rounded-xl border border-border/70 bg-background/50 p-2 pt-4 md:p-4 md:pt-5">
           <ResponsiveContainer>
             <AreaChart
-              data={series}
+              data={chartSeries}
               margin={{ left: -10, right: 10 }}
               className="cursor-crosshair"
               onClick={(st) => { const t = Number((st as { activeLabel?: number | string })?.activeLabel); if (!isNaN(t)) seek(t); }}
@@ -335,9 +344,9 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
                   <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="t" type="number" domain={[0, a.duration]} tickFormatter={fmtTime} stroke="var(--muted-foreground)" fontSize={11} />
-              <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="var(--muted-foreground)" fontSize={11} />
+              <CartesianGrid stroke="var(--border)" strokeDasharray="2 6" vertical={false} />
+              <XAxis dataKey="t" type="number" domain={[0, a.duration]} tickFormatter={fmtTime} stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} minTickGap={28} />
+              <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} width={42} />
               <Tooltip
                 cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "3 3", strokeWidth: 1 }}
                 content={({ active, payload, label }) => {
@@ -358,15 +367,15 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
               />
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
-              <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
+              <Area type="monotone" dataKey="r" name="Retenção" stroke="var(--chart-1)" strokeWidth={2.75} fill="url(#rg)" dot={false} activeDot={{ r: 4, stroke: "var(--background)", strokeWidth: 2 }} isAnimationActive={false} />
               {liveMarkers.map((marker) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} ifOverflow="extendDomain" shape={(props: { cx?: number; cy?: number }) => props.cx == null || props.cy == null ? <g /> : <circle cx={props.cx} cy={props.cy} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} style={{ cursor: "pointer" }} onMouseEnter={() => setHoveredLiveMarker({ id: marker.id, position: marker.position })} onMouseLeave={() => setHoveredLiveMarker(null)} /> } />)}
             </AreaChart>
           </ResponsiveContainer>
         </div>
         </div>
         {hoveredLiveMarker && <div className="mt-2 inline-flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm shadow-sm"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="font-semibold">{liveMarkers.length === 1 ? "1 pessoa assistindo agora" : `${liveMarkers.length} pessoas assistindo agora`}</span><span className="text-muted-foreground">Posição na VSL: {fmtTime(hoveredLiveMarker.position)}</span></div>}
-        <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Cada ponto representa uma pessoa assistindo agora. Total ao vivo: {liveMarkers.length}.</p>
-        <div className="mt-4 grid grid-cols-5 gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-5 py-3 text-xs text-muted-foreground md:px-6"><span className="flex items-center gap-2"><span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Cada ponto verde representa uma sessão reproduzindo neste momento.</span><span>Retenção calculada sobre os plays registrados; avanço manual não conta.</span></div>
+        <div className="grid grid-cols-2 gap-2 border-t border-border/70 px-4 py-4 sm:grid-cols-5 md:px-6">
           {["10", "25", "50", "75", "100"].map((k) => (
             <div key={k} className="rounded-md bg-secondary p-3 text-center">
               <p className="text-xs text-muted-foreground">{k}% do vídeo</p>
