@@ -519,7 +519,7 @@ function Editor() {
                     {headlineMode === "visual" ? (
                       <div className="space-y-2">
                         <div className="flex flex-wrap gap-1 rounded-md border border-[#343b4a] bg-[#151923] p-2">
-                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("bold")} title="Negrito" onClick={() => toggleHeadlineStyle("bold")} className="h-8 w-8">B</Button>
+                          <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("bold")} title="Negrito" onClick={() => toggleHeadlineStyle("bold")} className={"h-8 w-8 border border-sky-400/40 bg-sky-400/10 text-sky-300"}>B</Button>
                           <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("italic")} title="Itálico" onClick={() => toggleHeadlineStyle("italic")} className="h-8 w-8 italic">I</Button>
                           <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("underline")} title="Sublinhado" onClick={() => toggleHeadlineStyle("underline")} className="h-8 w-8 underline">U</Button>
                           <Button type="button" size="icon" variant="ghost" aria-pressed={isHeadlineStyleActive("strike")} title="Tachado" onClick={() => toggleHeadlineStyle("strike")} className="h-8 w-8 line-through">S</Button>
