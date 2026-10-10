@@ -248,7 +248,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <div
                 className={"absolute z-[4] max-w-none " + (preview && onAutoplayImageTransform ? (imageSelected ? "cursor-move" : "cursor-pointer") : "cursor-default")}
-                onClick={(e) => { if (cfg.autoplay && (cfg.autoplayImage || video.thumbnail_url)) { e.preventDefault(); e.stopPropagation(); } if (preview && onAutoplayImageTransform) setImageSelected(true); }}
+                onClick={(e) => { if (preview && onAutoplayImageTransform) { e.preventDefault(); e.stopPropagation(); setImageSelected(true); return; } }}
                 onPointerDown={preview && onAutoplayImageTransform ? (e) => {
                   if ((e.target as HTMLElement).dataset["resizeHandle"]) return;
                   e.preventDefault(); e.stopPropagation(); setImageSelected(true); setImageMoving(true);
