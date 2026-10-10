@@ -347,19 +347,23 @@ function Body({ a, offer, videoUrl, live }: { a: Analytics; offer: number | null
                   const point = payload[0]?.payload as { t: number; n: number; r: number } | undefined;
                   if (!point) return null;
                   return (
-                    <div className="min-w-[190px] rounded-lg border border-border bg-popover px-3 py-2.5 text-popover-foreground shadow-xl">
-                      <p className="mb-2 text-xs font-medium text-muted-foreground">Dados neste ponto</p>
-                      <div className="mb-2 flex items-center justify-between gap-5">
-                        <span className="text-sm text-muted-foreground">Tempo</span>
-                        <span className="num text-sm font-semibold">{fmtTime(Number(label ?? point.t))}</span>
+                    <div className="w-[210px] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
+                      <div className="border-b border-border px-3 py-2">
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Detalhes da audiência</p>
                       </div>
-                      <div className="mb-2 flex items-center justify-between gap-5">
-                        <span className="text-sm text-muted-foreground">Audiência</span>
-                        <span className="num text-sm font-semibold">{Number(point.n).toLocaleString("pt-BR")} pessoas</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-5 border-t border-border pt-2">
-                        <span className="text-sm text-muted-foreground">Retenção</span>
-                        <span className="num text-sm font-semibold text-primary">{Number(point.r).toFixed(1)}%</span>
+                      <div className="space-y-3 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm text-muted-foreground">Tempo</span>
+                          <span className="num text-sm font-semibold">{fmtTime(Number(label ?? point.t))}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm text-muted-foreground">Audiência</span>
+                          <span className="num text-sm font-semibold">{Math.max(0, Number(point.n) || 0).toLocaleString("pt-BR")} pessoas</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                          <span className="text-sm text-muted-foreground">Retenção</span>
+                          <span className="num rounded-md bg-primary/10 px-2 py-1 text-sm font-bold text-primary">{Number(point.r).toFixed(1)}%</span>
+                        </div>
                       </div>
                     </div>
                   );
