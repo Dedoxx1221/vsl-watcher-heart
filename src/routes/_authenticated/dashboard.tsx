@@ -197,6 +197,7 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
 function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; video: { id: string; video_url: string; thumbnail_url: string | null; checkout_url: string | null; offer_time_seconds: number | null; player_settings?: unknown } | null; live?: { viewers?: { is_playing: boolean; position: number }[] } | undefined }) {
   const vref = useRef<HTMLVideoElement>(null);
   const [cursor, setCursor] = useState(0);
+  const [hoveredLiveMarker, setHoveredLiveMarker] = useState<{ id: string; position: number } | null>(null);
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
   // Ajuste isotônico decrescente: reduz oscilações de amostras pequenas sem
   // inventar uma queda em cada ponto. A curva exibida nunca sobe, como em players de VSL.
@@ -328,38 +329,18 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
               <XAxis dataKey="t" type="number" domain={[0, a.duration]} tickFormatter={fmtTime} stroke="var(--muted-foreground)" fontSize={11} />
               <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} stroke="var(--muted-foreground)" fontSize={11} />
               <Tooltip
-                cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "4 4" }}
+                cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "3 3", strokeWidth: 1 }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;
-                  const hovered = payload[0]?.payload as { t?: number; n?: number; r?: number; id?: string; position?: number; retention?: number } | undefined;
-                  if (!hovered) return null;
-                  if (hovered.id) {
-                    return (
-                      <div className="rounded-xl border border-border bg-popover px-3 py-2.5 text-popover-foreground shadow-2xl">
-                        <p className="text-sm font-semibold">{liveMarkers.length === 1 ? "1 pessoa assistindo agora" : `${liveMarkers.length} pessoas assistindo agora`}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">Posição na VSL: {fmtTime(Number(hovered.position ?? 0))}</p>
-                      </div>
-                    );
-                  }
-                  const point = hovered as { t: number; n: number; r: number };
+                  const point = payload.find((entry) => entry.dataKey === "r")?.payload as { t?: number; n?: number; r?: number } | undefined;
+                  if (!point) return null;
                   return (
-                    <div className="w-[210px] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
-                      <div className="border-b border-border px-3 py-2">
-                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Detalhes da audiência</p>
-                      </div>
-                      <div className="space-y-3 p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm text-muted-foreground">Tempo</span>
-                          <span className="num text-sm font-semibold">{fmtTime(Number(label ?? point.t))}</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm text-muted-foreground">Audiência</span>
-                          <span className="num text-sm font-semibold">{Math.max(0, Number(point.n) || 0).toLocaleString("pt-BR")} pessoas</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
-                          <span className="text-sm text-muted-foreground">Retenção</span>
-                          <span className="num rounded-md bg-primary/10 px-2 py-1 text-sm font-bold text-primary">{Number(point.r).toFixed(1)}%</span>
-                        </div>
+                    <div className="w-[190px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl">
+                      <div className="border-b border-border px-3 py-2"><p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Audiência</p></div>
+                      <div className="space-y-2 p-3">
+                        <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">Tempo</span><span className="num text-sm font-semibold">{fmtTime(Number(label ?? point.t))}</span></div>
+                        <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">Espectadores</span><span className="num text-sm font-semibold">{Math.max(0, Number(point.n) || 0).toLocaleString("pt-BR")}</span></div>
+                        <div className="flex items-center justify-between gap-3 border-t border-border pt-2"><span className="text-xs text-muted-foreground">Retenção</span><span className="num text-sm font-bold text-primary">{Number(point.r).toFixed(1)}%</span></div>
                       </div>
                     </div>
                   );
@@ -368,12 +349,13 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
               {offer != null && <ReferenceLine x={offer} stroke="var(--warning)" label={{ value: "Oferta", fill: "var(--warning)", fontSize: 11, position: "insideTopRight" }} />}
               <ReferenceLine x={cursor} stroke="var(--foreground)" strokeWidth={1.5} />
               <Area type="monotone" dataKey="r" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#rg)" dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
-              {liveMarkers.map((marker) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={7} fill="#22c55e" stroke="#ffffff" strokeWidth={2} ifOverflow="extendDomain" />)}
+              {liveMarkers.map((marker) => <ReferenceDot key={marker.id} x={marker.position} y={marker.retention} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} ifOverflow="extendDomain" shape={(props: { cx?: number; cy?: number }) => props.cx == null || props.cy == null ? <g /> : <circle cx={props.cx} cy={props.cy} r={3.5} fill="#22c55e" stroke="#ffffff" strokeWidth={1} style={{ cursor: "pointer" }} onMouseEnter={() => setHoveredLiveMarker({ id: marker.id, position: marker.position })} onMouseLeave={() => setHoveredLiveMarker(null)} /> } />)}
             </AreaChart>
           </ResponsiveContainer>
         </div>
         </div>
-        <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--chart-3)]" /> Cada ponto colorido representa uma pessoa assistindo agora e avança pelo tempo do vídeo. Total ao vivo: {liveMarkers.length}.</p>
+        {hoveredLiveMarker && <div className="mt-2 inline-flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm shadow-sm"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="font-semibold">{liveMarkers.length === 1 ? "1 pessoa assistindo agora" : `${liveMarkers.length} pessoas assistindo agora`}</span><span className="text-muted-foreground">Posição na VSL: {fmtTime(hoveredLiveMarker.position)}</span></div>}
+        <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Cada ponto representa uma pessoa assistindo agora. Total ao vivo: {liveMarkers.length}.</p>
         <div className="mt-4 grid grid-cols-5 gap-2">
           {["10", "25", "50", "75", "100"].map((k) => (
             <div key={k} className="rounded-md bg-secondary p-3 text-center">
