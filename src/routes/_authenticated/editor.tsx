@@ -171,33 +171,10 @@ function Editor() {
           <Section id="autoplay" title="Smart Autoplay™" toggle="autoplay">
             <p className="py-2 text-xs text-muted-foreground">O vídeo começa mudo em loop; ao tocar, reinicia do zero com som. Desligado, mostra a thumbnail com botão de play.</p>
             <Text k="autoplayImage" label="Imagem ou GIF sobre o vídeo (URL)" placeholder="https://…/imagem.gif — vazio usa a thumbnail" />
-            <div className="my-3 rounded-xl border border-border bg-muted/30 p-4 space-y-4">
-              <div>
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <Label htmlFor="autoplay-image-size">Tamanho da imagem</Label>
-                  <span className="num text-sm font-semibold">{s.autoplayImageSize}%</span>
-                </div>
-                <input id="autoplay-image-size" aria-label="Tamanho da imagem" type="range" min={15} max={100} step={1} value={s.autoplayImageSize} onChange={(e) => set("autoplayImageSize", Number(e.target.value))} className="w-full accent-primary" />
-                <div className="flex justify-between text-xs text-muted-foreground"><span>Pequena</span><span>Grande</span></div>
-              </div>
-              <div>
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <Label htmlFor="autoplay-image-x">Posição horizontal</Label>
-                  <span className="num text-sm font-semibold">{s.autoplayImageX}%</span>
-                </div>
-                <input id="autoplay-image-x" aria-label="Posição horizontal da imagem" type="range" min={0} max={100} step={1} value={s.autoplayImageX} onChange={(e) => set("autoplayImageX", Number(e.target.value))} className="w-full accent-primary" />
-                <div className="flex justify-between text-xs text-muted-foreground"><span>Esquerda</span><span>Direita</span></div>
-              </div>
-              <div>
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <Label htmlFor="autoplay-image-y">Posição vertical</Label>
-                  <span className="num text-sm font-semibold">{s.autoplayImageY}%</span>
-                </div>
-                <input id="autoplay-image-y" aria-label="Posição vertical da imagem" type="range" min={0} max={100} step={1} value={s.autoplayImageY} onChange={(e) => set("autoplayImageY", Number(e.target.value))} className="w-full accent-primary" />
-                <div className="flex justify-between text-xs text-muted-foreground"><span>Topo</span><span>Base</span></div>
-              </div>
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => { set("autoplayImageSize", 70); set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Centralizar e restaurar tamanho</Button>
-              <p className="text-xs text-muted-foreground">Os ajustes aparecem imediatamente na prévia ao lado. Depois, clique em Salvar para publicar.</p>
+            <div className="my-3 rounded-xl border border-border bg-muted/30 p-4">
+              <p className="text-sm font-medium">Edite diretamente na prévia</p>
+              <p className="mt-1 text-xs text-muted-foreground">Clique e arraste a imagem para posicionar. Arraste a alça redonda no canto para aumentar ou diminuir. As alterações são salvas quando você clicar em Salvar.</p>
+              <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={() => { set("autoplayImageSize", 70); set("autoplayImageX", 50); set("autoplayImageY", 50); }}>Restaurar posição e tamanho</Button>
             </div>
             <Text k="autoplayText" label="Mensagem sobre o vídeo (opcional)" placeholder="Seu vídeo já começou — toque para ouvir" />
           </Section>
