@@ -202,12 +202,21 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
           <div className="pointer-events-none absolute inset-x-3 top-3 z-[3] rounded-lg bg-background/80 px-4 py-2 text-center text-sm font-bold text-foreground">{hook.text}</div>
         )}
         {started.current && paused && cfg.allowPause && (
-          <button onClick={togglePause} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-background/60 text-foreground">
-            {cfg.thumbSniper && cfg.thumbPauseUrl && <img src={cfg.thumbPauseUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-            <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
-              <svg viewBox="0 0 24 24" className="ml-1 h-8 w-8 fill-current"><path d="M8 5v14l11-7z" /></svg>
-            </span>
-            <span className="relative text-sm font-semibold">{cfg.pauseText}</span>
+          <button
+            onClick={togglePause}
+            aria-label="Continuar vídeo"
+            className={"absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 text-foreground " + (cfg.thumbSniper && cfg.thumbPauseUrl ? "bg-transparent" : "bg-background/60")}
+          >
+            {cfg.thumbSniper && cfg.thumbPauseUrl ? (
+              <img src={cfg.thumbPauseUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <>
+                <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
+                  <svg viewBox="0 0 24 24" className="ml-1 h-8 w-8 fill-current"><path d="M8 5v14l11-7z" /></svg>
+                </span>
+                <span className="relative text-sm font-semibold">{cfg.pauseText}</span>
+              </>
+            )}
           </button>
         )}
         {ended && cfg.thumbSniper && cfg.thumbEndUrl && (
