@@ -163,16 +163,22 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
 
   return (
     <div ref={wrap} style={style} className={"mx-auto w-full bg-background " + (cfg.aspect === "9:16" ? "max-w-[480px]" : "")}>
-      {cfg.headline && cfg.headlineText && (() => {
-        const segments = cfg.headlineSegments.length && cfg.headlineSegments.map((segment) => segment.text).join("") === cfg.headlineText
-          ? cfg.headlineSegments
-          : [{ text: cfg.headlineText }];
-        return (
-          <div className="px-3 py-3 leading-snug" style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontWeight: cfg.headlineBold ? 700 : 400, fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", overflowWrap: "anywhere" }}>
-            {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: segment.underline === undefined ? undefined : segment.underline ? "underline" : "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
-          </div>
-        );
-      })()}
+      {cfg.headline && (cfg.headlineUseImage ? !!cfg.headlineImageUrl : !!cfg.headlineText) && (
+        <div className="px-3 py-3 leading-snug" style={{ textAlign: cfg.headlineAlign }}>
+          {cfg.headlineUseImage ? (
+            <img src={cfg.headlineImageUrl} alt="Headline" loading="eager" className="block h-auto max-w-full" style={{ maxHeight: "40vh", objectFit: "contain", marginLeft: cfg.headlineAlign === "left" ? 0 : "auto", marginRight: cfg.headlineAlign === "right" ? 0 : "auto" }} />
+          ) : (() => {
+            const segments = cfg.headlineSegments.length && cfg.headlineSegments.map((segment) => segment.text).join("") === cfg.headlineText
+              ? cfg.headlineSegments
+              : [{ text: cfg.headlineText }];
+            return (
+              <div style={{ color: cfg.headlineColor, textAlign: cfg.headlineAlign, fontSize: `${cfg.headlineFontSize}px`, fontWeight: cfg.headlineBold ? 700 : 400, fontStyle: cfg.headlineItalic ? "italic" : "normal", textDecoration: cfg.headlineUnderline ? "underline" : "none", overflowWrap: "anywhere" }}>
+                {segments.map((segment, index) => <span key={`${index}-${segment.text}`} style={{ color: segment.color || cfg.headlineColor, fontSize: segment.size ? `${segment.size}px` : undefined, fontWeight: segment.bold === undefined ? undefined : segment.bold ? 700 : 400, textDecoration: segment.underline === undefined ? undefined : segment.underline ? "underline" : "none", fontStyle: segment.italic ? "italic" : undefined, whiteSpace: "pre-wrap" }}>{segment.text}</span>)}
+              </div>
+            );
+          })()}
+        </div>
+      )}
       <div className={"relative w-full overflow-hidden bg-background leading-none " + (cfg.rounded ? "rounded-xl" : "")}>
         <video
           ref={ref}
