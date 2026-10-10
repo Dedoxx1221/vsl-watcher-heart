@@ -323,6 +323,7 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
                   </>
                 )}
               </div>
+              </>
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">
