@@ -1,37 +1,100 @@
+export type MiniHook = { at: number; text: string; dur: number };
+
 export type PlayerSettings = {
+  // Estilo
   aspect: "9:16" | "16:9";
-  barColor: string;
+  rounded: boolean;
+  accentColor: string;
+  // Progresso inteligente
   showBar: boolean;
   fastBar: boolean;
-  allowPause: boolean;
-  pauseText: string;
-  blockSeek: boolean;
-  resumePrompt: boolean;
-  resumeText: string;
+  barColor: string;
+  barHeight: number;
+  // Smart autoplay
+  autoplay: boolean;
+  autoplayText: string;
+  // Turbo
+  turbo: boolean;
+  // Headlines
+  headline: boolean;
+  headlineText: string;
+  headlineColor: string;
+  // Filtro de tráfego
+  trafficFilter: boolean;
+  trafficParam: string;
+  trafficRedirect: string;
+  // Botões de ação
+  cta: boolean;
   ctaText: string;
   ctaColor: string;
   ctaTextColor: string;
   ctaPulse: boolean;
+  // ThumbSniper
+  thumbSniper: boolean;
+  thumbPauseUrl: string;
+  thumbEndUrl: string;
+  // Continuar assistindo
+  resumePrompt: boolean;
+  resumeText: string;
+  // Mini-ganchos
+  hooks: boolean;
+  hookList: MiniHook[];
+  // Pixels
+  pixels: boolean;
+  fbPixel: string;
+  ga4: string;
+  // Legendas
+  captions: boolean;
+  captionsUrl: string;
+  // Opções de reprodução
+  allowPause: boolean;
+  pauseText: string;
+  blockSeek: boolean;
+  lockSpeed: boolean;
   ctaAlways?: boolean; // editor preview only
 };
 
 export const DEFAULT_SETTINGS: PlayerSettings = {
   aspect: "9:16",
-  barColor: "#e62117",
+  rounded: false,
+  accentColor: "#e62117",
   showBar: true,
   fastBar: true,
-  allowPause: true,
-  pauseText: "Vídeo pausado — toque para continuar",
-  blockSeek: true,
-  resumePrompt: true,
-  resumeText: "Você já começou a assistir este vídeo",
+  barColor: "#e62117",
+  barHeight: 5,
+  autoplay: true,
+  autoplayText: "",
+  turbo: false,
+  headline: false,
+  headlineText: "Assista até o final — o melhor vem depois",
+  headlineColor: "#ffffff",
+  trafficFilter: false,
+  trafficParam: "utm_source",
+  trafficRedirect: "",
+  cta: true,
   ctaText: "Accede a «La vida con mi ángel»",
   ctaColor: "#16a34a",
   ctaTextColor: "#ffffff",
   ctaPulse: true,
+  thumbSniper: false,
+  thumbPauseUrl: "",
+  thumbEndUrl: "",
+  resumePrompt: true,
+  resumeText: "Você já começou a assistir este vídeo",
+  hooks: false,
+  hookList: [],
+  pixels: false,
+  fbPixel: "",
+  ga4: "",
+  captions: false,
+  captionsUrl: "",
+  allowPause: true,
+  pauseText: "Vídeo pausado — toque para continuar",
+  blockSeek: true,
+  lockSpeed: true,
 };
 
 export function parseSettings(raw: unknown): PlayerSettings {
   const o = raw && typeof raw === "object" ? (raw as Partial<PlayerSettings>) : {};
-  return { ...DEFAULT_SETTINGS, ...o, ctaAlways: false };
+  return { ...DEFAULT_SETTINGS, ...o, hookList: Array.isArray(o.hookList) ? o.hookList : [], ctaAlways: false };
 }
