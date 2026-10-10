@@ -215,6 +215,12 @@ export type Database = {
           _video_id: string
         }
         Returns: Json
+      },
+      get_live_vsl_analytics: {
+        Args: {
+          _video_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {

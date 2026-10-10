@@ -59,9 +59,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Retina — Analytics de VSL" },
+      { title: "Vexora — Analytics de VSL" },
       { name: "description", content: "Retenção, abandono e conversão das suas VSLs com dados reais." },
-      { property: "og:title", content: "Retina — Analytics de VSL" },
+      { property: "og:title", content: "Vexora — Analytics de VSL" },
       { property: "og:description", content: "Retenção, abandono e conversão das suas VSLs com dados reais." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

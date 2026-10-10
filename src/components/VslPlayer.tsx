@@ -36,7 +36,7 @@ function fire(cfg: PlayerSettings, fb: string, ga: string) {
   if (cfg.ga4) w.gtag?.("event", ga);
 }
 
-export function VslPlayer({ video, settings, preview = false }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean }) {
+export function VslPlayer({ video, settings, preview = false, onAutoplayImageTransform }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean; onAutoplayImageTransform?: (next: { x: number; y: number; size: number }) => void }) {
   const cfg = settings ?? parseSettings(video.player_settings);
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
@@ -46,6 +46,7 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
   const posKey = `vsl_pos_${video.id}`;
   const ref = useRef<HTMLVideoElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
+  const imageDrag = useRef<{ mode: "move" | "resize"; startX: number; startY: number; x: number; y: number; size: number; width: number; height: number } | null>(null);
   const tracker = useRef<VslTracker | null>(null);
   const started = useRef(false);
   const resetting = useRef(false);
@@ -57,7 +58,7 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (preview) { if (cfg.autoplay) ref.current?.play().catch(() => {}); return; }
+    if (preview) { ref.current?.pause(); return; }
     const params = new URLSearchParams(window.location.search);
     let hostParams = params;
     try { hostParams = new URLSearchParams(window.top?.location.search ?? ""); } catch { /* cross-origin */ }
@@ -166,13 +167,13 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
         <video
           ref={ref}
           src={video.video_url}
-          autoPlay={cfg.autoplay}
+          autoPlay={!preview && cfg.autoplay}
           muted
-          loop={cfg.autoplay}
+          loop={!preview && cfg.autoplay}
           playsInline
-          preload={cfg.turbo || cfg.autoplay ? "auto" : "metadata"}
+          preload={!preview && (cfg.turbo || cfg.autoplay) ? "auto" : "metadata"}
           crossOrigin={cfg.captions && cfg.captionsUrl ? "anonymous" : undefined}
-          poster={!cfg.autoplay ? video.thumbnail_url ?? undefined : undefined}
+          poster={preview || !cfg.autoplay ? video.thumbnail_url ?? undefined : undefined}
           disablePictureInPicture
           controlsList="nodownload noplaybackrate noremoteplayback"
           className={"block h-auto w-full bg-background object-contain " + (cfg.aspect === "9:16" ? "aspect-[9/16]" : "aspect-video")}
@@ -215,22 +216,66 @@ export function VslPlayer({ video, settings, preview = false }: { video: PlayerV
             <button onClick={() => start(0)} className="text-sm text-muted-foreground underline">Começar do início</button>
           </div>
         )}
-        {overlay && (
-          <button aria-label="Toque para ouvir" onClick={() => start(0)} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
+        {(preview ? cfg.autoplay : overlay) && (
+          <div role="button" tabIndex={0} aria-label="Toque para ouvir" onClick={() => { if (!preview) start(0); }} onKeyDown={(e) => { if (!preview && (e.key === "Enter" || e.key === " ")) start(0); }} className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-3 bg-transparent">
             {cfg.autoplayText && <span className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-bold text-primary-foreground">{cfg.autoplayText}</span>}
             {(cfg.autoplayImage || video.thumbnail_url) && cfg.autoplay && (
               <img
                 src={cfg.autoplayImage || video.thumbnail_url!}
                 alt="Toque para ouvir"
-                className="pointer-events-none absolute max-w-none object-contain"
+                draggable={false}
+                onClick={(e) => { if (preview && onAutoplayImageTransform) e.stopPropagation(); }}
+                onPointerDown={preview && onAutoplayImageTransform ? (e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  const box = wrap.current?.getBoundingClientRect();
+                  if (!box) return;
+                  imageDrag.current = { mode: "move", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                } : undefined}
+                onPointerMove={preview && onAutoplayImageTransform ? (e) => {
+                  const d = imageDrag.current; if (!d || d.mode !== "move") return;
+                  e.preventDefault(); e.stopPropagation();
+                  onAutoplayImageTransform({ x: Math.min(100, Math.max(0, d.x + (e.clientX - d.startX) / d.width * 100)), y: Math.min(100, Math.max(0, d.y + (e.clientY - d.startY) / d.height * 100)), size: d.size });
+                } : undefined}
+                onPointerUp={() => { imageDrag.current = null; }}
+                onPointerCancel={() => { imageDrag.current = null; }}
+                className={"absolute max-w-none object-contain " + (preview && onAutoplayImageTransform ? "cursor-move touch-none" : "pointer-events-none")}
                 style={{
                   left: `${Math.min(100, Math.max(0, cfg.autoplayImageX ?? 50))}%`,
                   top: `${Math.min(100, Math.max(0, cfg.autoplayImageY ?? 50))}%`,
                   transform: "translate(-50%, -50%)",
                   width: `${Math.min(100, Math.max(15, cfg.autoplayImageSize ?? 70))}%`,
                   maxHeight: "95%",
+                  touchAction: preview && onAutoplayImageTransform ? "none" : undefined,
+                  pointerEvents: preview && onAutoplayImageTransform ? "auto" : undefined,
                 }}
               />
+              {preview && onAutoplayImageTransform && ([-1, 1].flatMap((sx) => [-1, 1].map((sy) => (
+                <button
+                  key={`${sx}-${sy}`}
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  aria-label="Redimensionar imagem"
+                  title="Arraste a alça do canto para aumentar ou diminuir, como no Paint"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  onPointerDown={(e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    const box = wrap.current?.getBoundingClientRect(); if (!box) return;
+                    imageDrag.current = { mode: "resize", startX: e.clientX, startY: e.clientY, x: cfg.autoplayImageX ?? 50, y: cfg.autoplayImageY ?? 50, size: cfg.autoplayImageSize ?? 70, width: box.width, height: box.height };
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                  }}
+                  onPointerMove={(e) => {
+                    const d = imageDrag.current; if (!d || d.mode !== "resize") return;
+                    e.preventDefault(); e.stopPropagation();
+                    const delta = (sx * (e.clientX - d.startX) + sy * (e.clientY - d.startY)) / Math.max(1, d.width) * 100;
+                    onAutoplayImageTransform({ x: d.x, y: d.y, size: Math.min(100, Math.max(15, d.size + delta)) });
+                  }}
+                  onPointerUp={() => { imageDrag.current = null; }}
+                  onPointerCancel={() => { imageDrag.current = null; }}
+                  className="absolute z-[5] h-3.5 w-3.5 rounded-sm border-2 border-white bg-primary shadow-md cursor-nwse-resize touch-none"
+                  style={{ left: `${cfg.autoplayImageX ?? 50}%`, top: `${cfg.autoplayImageY ?? 50}%`, transform: `translate(${sx * (cfg.autoplayImageSize ?? 70) / 2}%, ${sy * (cfg.autoplayImageSize ?? 70) / 2}%)` }}
+                />
+              ))))}
             )}
             {!cfg.autoplay && (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)] text-primary-foreground">

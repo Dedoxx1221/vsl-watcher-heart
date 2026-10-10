@@ -5,14 +5,14 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine, Responsiv
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingDown, TrendingUp, Radio, MapPin, Monitor, Smartphone, Tablet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Analytics — Retina" },
+      { title: "Analytics — Vexora" },
       { name: "description", content: "Retenção, abandono e funil da sua VSL." },
-      { property: "og:title", content: "Analytics — Retina" },
+      { property: "og:title", content: "Analytics — Vexora" },
       { property: "og:description", content: "Retenção, abandono e funil da sua VSL." },
     ],
   }),
@@ -30,6 +30,22 @@ function Dashboard() {
   const [period, setPeriod] = useState<keyof typeof PERIODS>("30");
   const [campaign, setCampaign] = useState("__all");
   const video = videos.find((v) => v.id === videoId);
+
+  const { data: live } = useQuery({
+    queryKey: ["live-vsl-analytics", videoId],
+    enabled: !!videoId,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_live_vsl_analytics", { _video_id: videoId! });
+      if (error) throw error;
+      return data as unknown as {
+        active_count: number; playing_count: number;
+        viewers: { session_id: string; viewer_id: string; position: number; is_playing: boolean; last_seen_at: string; country: string | null; region: string | null; city: string | null; device_type: string | null; referrer: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null }[];
+        geo: { country: string; region: string; city: string; viewers: number }[];
+      };
+    },
+  });
 
   const { data: a, isLoading } = useQuery({
     queryKey: ["analytics", videoId, period, campaign],
@@ -76,6 +92,57 @@ function Dashboard() {
           </Select>
         </div>
       </div>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Radio className="h-5 w-5 text-emerald-500" />
+            <h2 className="text-xl font-bold">Ao vivo</h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />Atualiza a cada 5 s</span>
+          </div>
+          <p className="text-xs text-muted-foreground">Sessões vistas nos últimos 35 segundos</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Kpi label="Espectadores ativos" value={String(live?.active_count ?? 0)} sub="Player aberto recentemente" />
+          <Kpi label="Assistindo agora" value={String(live?.playing_count ?? 0)} sub="Reprodução em andamento" />
+          <Kpi label="Localizações detectadas" value={String((live?.geo ?? []).filter(g => g.country !== "Desconhecido").length)} sub="País/região/cidade quando disponíveis" />
+          <Kpi label="Fontes UTM distintas" value={String(new Set((live?.viewers ?? []).map(v => v.utm_source).filter(Boolean)).size)} sub="Entre as sessões ativas" />
+        </div>
+        <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+          <div className="panel overflow-hidden">
+            <div className="border-b border-border p-4"><h3 className="font-semibold">Espectadores neste momento</h3><p className="mt-1 text-xs text-muted-foreground">Identificadores anônimos de sessão, sem exibir dados pessoais.</p></div>
+            {!live?.viewers?.length ? <p className="p-6 text-sm text-muted-foreground">Nenhum espectador detectado agora. Abra a VSL em outra guia para validar.</p> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-secondary/50 text-xs text-muted-foreground"><tr><th className="p-3">Sessão</th><th className="p-3">Status</th><th className="p-3">Posição</th><th className="p-3">Localização</th><th className="p-3">Dispositivo</th><th className="p-3">Origem / UTM</th></tr></thead>
+                  <tbody>{live.viewers.map(v => {
+                    const Device = v.device_type === "Mobile" ? Smartphone : v.device_type === "Tablet" ? Tablet : Monitor;
+                    const location = [v.city, v.region, v.country].filter(Boolean).join(", ") || "Localização indisponível";
+                    const source = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / ") || v.referrer || "Direto / desconhecido";
+                    return <tr key={v.session_id} className="border-t border-border">
+                      <td className="p-3 font-mono text-xs">{v.viewer_id}</td>
+                      <td className="p-3"><span className={v.is_playing ? "text-emerald-600" : "text-muted-foreground"}>{v.is_playing ? "● Assistindo" : "○ Pausado/aberto"}</span></td>
+                      <td className="p-3 tabular-nums">{fmtTime(Number(v.position) || 0)}</td>
+                      <td className="p-3"><span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />{location}</span></td>
+                      <td className="p-3"><span className="flex items-center gap-1"><Device className="h-3.5 w-3.5 text-muted-foreground" />{v.device_type || "Desconhecido"}</span></td>
+                      <td className="max-w-48 truncate p-3 text-xs text-muted-foreground" title={source}>{source}</td>
+                    </tr>;
+                  })}</tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          <div className="panel">
+            <div className="border-b border-border p-4"><h3 className="flex items-center gap-2 font-semibold"><MapPin className="h-4 w-4" />Geolocalização ao vivo</h3><p className="mt-1 text-xs text-muted-foreground">Estimativa baseada nos cabeçalhos de geolocalização do servidor/CDN.</p></div>
+            {!live?.geo?.length ? <p className="p-6 text-sm text-muted-foreground">Aguardando sessões. País, cidade e região dependem do provedor de hospedagem enviar esses dados.</p> : <div className="space-y-1 p-3">
+              {live.geo.map((g, i) => <div key={g.country + g.region + g.city + i} className="rounded-md p-2 hover:bg-secondary/50">
+                <div className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-medium">{[g.city, g.region, g.country].filter(Boolean).join(", ") || "Localização indisponível"}</span><span className="tabular-nums">{g.viewers}</span></div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, g.viewers / Math.max(1, live.active_count) * 100)}%` }} /></div>
+              </div>)}
+            </div>}
+          </div>
+        </div>
+      </section>
 
       {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} videoUrl={video?.video_url ?? ""} />}
     </div>

@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Retina" },
+      { title: "Entrar — Vexora" },
       { name: "description", content: "Acesse seu painel de analytics de VSL." },
-      { property: "og:title", content: "Entrar — Retina" },
+      { property: "og:title", content: "Entrar — Vexora" },
       { property: "og:description", content: "Acesse seu painel de analytics de VSL." },
     ],
   }),
@@ -53,7 +53,7 @@ function AuthPage() {
       <div className="panel w-full max-w-sm p-8">
         <div className="mb-6 flex items-center gap-2">
           <span className="h-3 w-3 rounded-full bg-primary" />
-          <span className="font-display text-xl font-bold">Retina</span>
+          <span className="font-display text-xl font-bold">Vexora</span>
         </div>
         <h1 className="text-2xl font-semibold">{mode === "in" ? "Entrar" : "Criar conta"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Analytics de retenção para VSLs.</p>
