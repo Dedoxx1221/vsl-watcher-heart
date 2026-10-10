@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronDown, Copy, Download, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Download, Maximize2, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { videosQuery, fmtTime } from "@/lib/videos";
 import { parseSettings, DEFAULT_SETTINGS, type PlayerSettings, type HeadlineSegment } from "@/lib/player-settings";
@@ -83,7 +83,8 @@ function headlineSegmentsToHtml(segments: HeadlineSegment[], text: string, color
       `font-size:${part.size || size}px`,
       `font-weight:${(part.bold ?? bold) ? 700 : 400}`,
       `font-style:${(part.italic ?? italic) ? "italic" : "normal"}`,
-      `text-decoration:${(part.underline ?? underline) ? "underline" : "none"}`,
+      `text-decoration:${[(part.underline ?? underline) ? "underline" : "", part.strike ? "line-through" : ""].filter(Boolean).join(" ") || "none"}`,
+      `background-color:${part.backgroundColor || "transparent"}`,
     ].join(";");
     return `<span style="${styles}">${escapeHtml(part.text).replace(/\n/g, "<br>")}</span>`;
   }).join("");
@@ -96,7 +97,7 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
       const text = node.textContent || "";
       if (!text) return;
       const prev = result[result.length - 1];
-      const same = prev && prev.color === inherited.color && prev.size === inherited.size && prev.bold === inherited.bold && prev.italic === inherited.italic && prev.underline === inherited.underline;
+      const same = prev && prev.color === inherited.color && prev.backgroundColor === inherited.backgroundColor && prev.size === inherited.size && prev.bold === inherited.bold && prev.italic === inherited.italic && prev.underline === inherited.underline && prev.strike === inherited.strike;
       if (same && prev) prev.text += text;
       else result.push({ text, ...inherited });
       return;
@@ -107,10 +108,15 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
     const style = el.style;
     const next: Partial<HeadlineSegment> = { ...inherited };
     if (style.color) next.color = style.color;
+    if (style.backgroundColor && style.backgroundColor !== "transparent" && style.backgroundColor !== "rgba(0, 0, 0, 0)") next.backgroundColor = style.backgroundColor;
     if (style.fontSize?.endsWith("px")) next.size = Number.parseFloat(style.fontSize);
     if (style.fontWeight) next.bold = style.fontWeight === "bold" || Number(style.fontWeight) >= 600;
     if (style.fontStyle) next.italic = style.fontStyle === "italic";
-    if (style.textDecoration || style.textDecorationLine) next.underline = /underline/.test(style.textDecoration + " " + style.textDecorationLine);
+    if (style.textDecoration || style.textDecorationLine) {
+      const decoration = style.textDecoration + " " + style.textDecorationLine;
+      next.underline = /underline/.test(decoration);
+      next.strike = /line-through/.test(decoration);
+    }
     if (tag === "b" || tag === "strong") next.bold = true;
     if (tag === "i" || tag === "em") next.italic = true;
     if (tag === "u") next.underline = true;
@@ -178,7 +184,11 @@ function Editor() {
   const [open, setOpen] = useState<string | null>(null);
   const [headlineSelection, setHeadlineSelection] = useState({ start: 0, end: 0 });
   const [headlineWordColor, setHeadlineWordColor] = useState("#ffdf00");
-  const [headlineWordSize, setHeadlineWordSize] = useState(32);
+  const [headlineWordSize, setHeadlineWordSize] = useState(18);
+  const [headlineMode, setHeadlineMode] = useState<"visual" | "code">("visual");
+  const [headlineCode, setHeadlineCode] = useState("");
+  const [headlineExpanded, setHeadlineExpanded] = useState(false);
+  const [headlineBackground, setHeadlineBackground] = useState("#ff9800");
   const headlineEditorRef = useRef<HTMLDivElement>(null);
   const skipHeadlineDomSync = useRef(false);
 
@@ -448,95 +458,93 @@ function Editor() {
                 <Switch checked={s.headline} onCheckedChange={(v) => set("headline", v)} />
               </span>
             </div>
-            {open === "headline" && <div className="divide-y divide-border px-4 pb-4">
-            <div className="space-y-2 py-3">
-              <Label>Tipo de headline</Label>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" size="sm" variant={!s.headlineUseImage ? "default" : "outline"} onClick={() => set("headlineUseImage", false)}>Texto formatado</Button>
-                <Button type="button" size="sm" variant={s.headlineUseImage ? "default" : "outline"} onClick={() => set("headlineUseImage", true)}>Imagem</Button>
+            {open === "headline" && <div className="divide-y divide-[#3a3a3a] bg-[#222222] px-4 pb-4 text-white">
+              <div className="space-y-2 py-3">
+                <p className="text-sm font-semibold">Selecione o melhor modo de edição</p>
+                <p className="text-xs leading-relaxed text-white/60">Visual e Código editam a mesma headline. A prévia é atualizada enquanto você edita.</p>
+                <div className="grid grid-cols-2 rounded-md border border-[#3a3a3a] p-1">
+                  <button type="button" onClick={() => { if (headlineMode === "code") { const root = document.createElement("div"); root.innerHTML = headlineCode; const parsed = parseHeadlineDom(root, s.headlineColor, s.headlineFontSize); set("headlineText", parsed.map(p => p.text).join("")); set("headlineSegments", parsed); } setHeadlineMode("visual"); }} className={"rounded px-3 py-2 text-sm " + (headlineMode === "visual" ? "border border-sky-500 text-sky-400" : "text-white/70")}>Visual</button>
+                  <button type="button" onClick={() => { if (headlineMode === "visual") setHeadlineCode(headlineSegmentsToHtml(s.headlineSegments, s.headlineText, s.headlineColor, s.headlineFontSize, s.headlineBold, s.headlineItalic, s.headlineUnderline)); setHeadlineMode("code"); }} className={"rounded px-3 py-2 text-sm " + (headlineMode === "code" ? "border border-sky-500 text-sky-400" : "text-white/70")}>Código HTML</button>
+                </div>
               </div>
               {s.headlineUseImage ? (
-                <>
-                  <Label>URL direta da imagem da headline</Label>
+                <div className="space-y-2 py-3">
+                  <Label className="text-white">Tipo de headline</Label>
+                  <div className="flex gap-2">
+                    <Button type="button" size="sm" variant="outline" onClick={() => set("headlineUseImage", false)}>Texto</Button>
+                    <Button type="button" size="sm" variant="default">Imagem</Button>
+                  </div>
+                  <Label className="text-white">URL direta da imagem da headline</Label>
                   <Input value={s.headlineImageUrl} onChange={(e) => set("headlineImageUrl", e.target.value)} placeholder="https://site.com/headline.webp" />
-                  <p className="text-xs text-muted-foreground">Use o link direto do arquivo de imagem. A prévia acima do vídeo mostra como ela aparecerá na página de vendas.</p>
                   <ImageUrlPreview url={s.headlineImageUrl} title="Prévia da imagem da headline" aspect={s.aspect} />
-                </>
+                </div>
               ) : (
                 <>
-              <Label>Texto da headline</Label>
-              <div
-                ref={headlineEditorRef}
-                contentEditable
-                suppressContentEditableWarning
-                role="textbox"
-                aria-multiline="true"
-                onInput={(e) => {
-                  const el = e.currentTarget;
-                  const parsed = parseHeadlineDom(el, s.headlineColor, s.headlineFontSize);
-                  skipHeadlineDomSync.current = true;
-                  set("headlineText", parsed.map((part) => part.text).join(""));
-                  set("headlineSegments", parsed);
-                  const selection = window.getSelection();
-                  if (selection?.rangeCount) {
-                    const range = selection.getRangeAt(0);
-                    setHeadlineSelection({ start: getCaretTextOffset(el, range.cloneRange()), end: getCaretTextOffset(el, range.cloneRange()) });
-                  }
-                }}
-                onMouseUp={(e) => {
-                  const el = e.currentTarget;
-                  const selection = window.getSelection();
-                  if (selection?.rangeCount && el.contains(selection.anchorNode)) {
-                    const range = selection.getRangeAt(0).cloneRange();
-                    const end = getCaretTextOffset(el, range);
-                    range.collapse(true);
-                    const start = getCaretTextOffset(el, range);
-                    setHeadlineSelection({ start, end });
-                  }
-                }}
-                onKeyUp={(e) => {
-                  const el = e.currentTarget;
-                  const selection = window.getSelection();
-                  if (selection?.rangeCount && el.contains(selection.anchorNode)) {
-                    const range = selection.getRangeAt(0).cloneRange();
-                    const end = getCaretTextOffset(el, range);
-                    range.collapse(true);
-                    const start = getCaretTextOffset(el, range);
-                    setHeadlineSelection({ start, end });
-                  }
-                }}
-                data-placeholder="Digite ou cole sua headline. A formatação colorida copiada também será preservada."
-                className="min-h-24 w-full whitespace-pre-wrap rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground"
-              />
-              <p className="text-xs text-muted-foreground">Para formatar palavras diferentes, selecione o trecho no campo acima e aplique a cor, tamanho ou estilo desejado.</p>
+                  <div className="space-y-2 py-3">
+                    <Label className="text-white">Tipo de headline</Label>
+                    <div className="flex gap-2">
+                      <Button type="button" size="sm" variant="default">Texto</Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => set("headlineUseImage", true)}>Imagem</Button>
+                    </div>
+                    {headlineMode === "visual" ? (
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-1 rounded-md border border-[#3a3a3a] p-2">
+                          <Button type="button" size="icon" variant={s.headlineBold ? "default" : "ghost"} title="Negrito" onClick={() => applyHeadlineStyle({ bold: true })} className="h-8 w-8">B</Button>
+                          <Button type="button" size="icon" variant={s.headlineItalic ? "default" : "ghost"} title="Itálico" onClick={() => applyHeadlineStyle({ italic: true })} className="h-8 w-8 italic">I</Button>
+                          <Button type="button" size="icon" variant={s.headlineUnderline ? "default" : "ghost"} title="Sublinhado" onClick={() => applyHeadlineStyle({ underline: true })} className="h-8 w-8 underline">U</Button>
+                          <Button type="button" size="icon" variant="ghost" title="Tachado" onClick={() => applyHeadlineStyle({ strike: true })} className="h-8 w-8 line-through">S</Button>
+                          <label title="Cor do texto" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-white/10">A<input type="color" value={headlineWordColor} onChange={(e) => { setHeadlineWordColor(e.target.value); applyHeadlineStyle({ color: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
+                          <label title="Destaque de fundo" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded hover:bg-white/10">▰<input type="color" value={headlineBackground} onChange={(e) => { setHeadlineBackground(e.target.value); applyHeadlineStyle({ backgroundColor: e.target.value }); }} className="absolute h-0 w-0 opacity-0" /></label>
+                          <span className="mx-1 h-8 w-px bg-[#3a3a3a]" />
+                          {(["left","center","right","justify"] as const).map((align) => <Button key={align} type="button" size="icon" variant={s.headlineAlign === align ? "default" : "ghost"} title={"Alinhar " + align} onClick={() => set("headlineAlign", align)} className="h-8 w-8 text-xs">{align === "left" ? "⇤" : align === "center" ? "↔" : align === "right" ? "⇥" : "☷"}</Button>)}
+                        </div>
+                        <div className="flex items-center gap-2 rounded-md border border-[#3a3a3a] p-2">
+                          <span className="text-xs text-white/60">Aa</span>
+                          <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => set("headlineFontSize", Math.max(8, s.headlineFontSize - 1))}>−</Button>
+                          <Input type="number" min={8} max={96} value={s.headlineFontSize} onChange={(e) => set("headlineFontSize", Math.min(96, Math.max(8, Number(e.target.value) || 18)))} className="h-8 w-16 text-center" />
+                          <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => set("headlineFontSize", Math.min(96, s.headlineFontSize + 1))}>+</Button>
+                          <span className="text-xs text-white/50">px</span>
+                        </div>
+                        <div className="relative">
+                          <div ref={headlineEditorRef} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true"
+                            onInput={(e) => { const el=e.currentTarget; const parsed=parseHeadlineDom(el,s.headlineColor,s.headlineFontSize); skipHeadlineDomSync.current=true; set("headlineText",parsed.map(p=>p.text).join("")); set("headlineSegments",parsed); const sel=window.getSelection(); if(sel?.rangeCount){const r=sel.getRangeAt(0); const pos=getCaretTextOffset(el,r.cloneRange()); setHeadlineSelection({start:pos,end:pos});} }}
+                            onMouseUp={(e) => { const el=e.currentTarget; const sel=window.getSelection(); if(sel?.rangeCount&&el.contains(sel.anchorNode)){const r=sel.getRangeAt(0).cloneRange();const end=getCaretTextOffset(el,r);r.collapse(true);setHeadlineSelection({start:getCaretTextOffset(el,r),end});} }}
+                            onKeyUp={(e) => { const el=e.currentTarget; const sel=window.getSelection(); if(sel?.rangeCount&&el.contains(sel.anchorNode)){const r=sel.getRangeAt(0).cloneRange();const end=getCaretTextOffset(el,r);r.collapse(true);setHeadlineSelection({start:getCaretTextOffset(el,r),end});} }}
+                            data-placeholder="Digite ou cole sua headline…" className="min-h-32 w-full whitespace-pre-wrap rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-3 py-3 text-sm leading-relaxed text-white outline-none focus-visible:border-sky-500 [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-white/35" />
+                          <button type="button" onClick={() => setHeadlineExpanded(true)} title="Expandir editor" className="absolute bottom-2 right-2 rounded border border-[#3a3a3a] bg-[#222] p-1.5 text-white/70 hover:text-sky-400"><Maximize2 className="h-4 w-4" /></button>
+                        </div>
+                        <p className="text-[11px] text-white/50">Selecione um trecho antes de usar as ferramentas para formatar somente aquela parte.</p>
+                      </div>
+                    ) : (
+                      <textarea value={headlineCode} onChange={(e) => { const code=e.target.value; setHeadlineCode(code); const root=document.createElement("div"); root.innerHTML=code; const parsed=parseHeadlineDom(root,s.headlineColor,s.headlineFontSize); set("headlineText",parsed.map(p=>p.text).join("")); set("headlineSegments",parsed); }} spellCheck={false} className="min-h-48 w-full rounded-md border border-[#3a3a3a] bg-[#171717] p-3 font-mono text-xs text-emerald-300 outline-none focus:border-sky-500" />
+                    )}
+                  </div>
+                  <details className="py-3">
+                    <summary className="cursor-pointer list-none text-sm font-medium">Tipografia <span className="float-right text-white/50">⌄</span></summary>
+                    <div className="grid grid-cols-2 gap-3 pt-3">
+                      <div className="space-y-1"><Label className="text-white/70">Família</Label><select value={s.headlineFontFamily} onChange={e=>set("headlineFontFamily",e.target.value)} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value="Inter, Arial, sans-serif">Inter</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="Impact, sans-serif">Impact</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option></select></div>
+                      <div className="space-y-1"><Label className="text-white/70">Peso</Label><select value={s.headlineFontWeight} onChange={e=>set("headlineFontWeight",Number(e.target.value))} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value={400}>Normal</option><option value={500}>Médio</option><option value={600}>Semibold</option><option value={700}>Negrito</option><option value={800}>Extra negrito</option><option value={900}>Preto</option></select></div>
+                      <div className="space-y-1"><Label className="text-white/70">Altura da linha</Label><Input type="number" min={0.8} max={2.5} step={0.1} value={s.headlineLineHeight} onChange={e=>set("headlineLineHeight",Math.min(2.5,Math.max(0.8,Number(e.target.value)||1.2)))} /></div>
+                      <div className="space-y-1"><Label className="text-white/70">Espaçamento letras</Label><Input type="number" min={-2} max={10} step={0.1} value={s.headlineLetterSpacing} onChange={e=>set("headlineLetterSpacing",Number(e.target.value)||0)} /></div>
+                      <div className="col-span-2 space-y-1"><Label className="text-white/70">Transformação</Label><select value={s.headlineTransform} onChange={e=>set("headlineTransform",e.target.value as PlayerSettings["headlineTransform"])} className="h-9 w-full rounded-md border border-[#3a3a3a] bg-[#1b1b1b] px-2 text-xs"><option value="none">Original</option><option value="uppercase">MAIÚSCULAS</option><option value="lowercase">minúsculas</option><option value="capitalize">Iniciais maiúsculas</option></select></div>
+                    </div>
+                  </details>
+                  <details className="py-3">
+                    <summary className="cursor-pointer list-none text-sm font-medium">Layout <span className="float-right text-white/50">⌄</span></summary>
+                    <div className="grid grid-cols-2 gap-3 pt-3">
+                      <div className="space-y-1"><Label className="text-white/70">Largura (%)</Label><Input type="number" min={30} max={100} value={s.headlineWidth} onChange={e=>set("headlineWidth",Math.min(100,Math.max(30,Number(e.target.value)||100)))} /></div>
+                      <div className="space-y-1"><Label className="text-white/70">Margem interna (px)</Label><Input type="number" min={0} max={48} value={s.headlinePadding} onChange={e=>set("headlinePadding",Math.min(48,Math.max(0,Number(e.target.value)||0)))} /></div>
+                      <div className="col-span-2 space-y-1"><Label className="text-white/70">Fundo do texto</Label><div className="flex items-center gap-2"><input type="color" value={s.headlineBackgroundColor === "transparent" ? "#222222" : s.headlineBackgroundColor} onChange={e=>set("headlineBackgroundColor",e.target.value)} /><Button size="sm" variant="outline" type="button" onClick={()=>set("headlineBackgroundColor","transparent")}>Sem fundo</Button></div></div>
+                    </div>
+                  </details>
                 </>
               )}
             </div>
-            <Color k="headlineColor" label="Cor padrão do texto" />
-            <div className="grid grid-cols-2 gap-3 py-2">
-              <div className="space-y-1.5"><Label>Alinhamento</Label><select value={s.headlineAlign} onChange={(e) => set("headlineAlign", e.target.value as PlayerSettings["headlineAlign"])} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="left">À esquerda</option><option value="center">Centralizado</option><option value="right">À direita</option></select></div>
-              <div className="space-y-1.5"><Label>Tamanho padrão (px)</Label><Input type="number" min={10} max={72} value={s.headlineFontSize} onChange={(e) => set("headlineFontSize", Math.min(72, Math.max(10, Number(e.target.value) || 24)))} /></div>
-            </div>
-            <div className="flex flex-wrap gap-2 py-2">
-              <Button type="button" size="sm" variant={s.headlineBold ? "default" : "outline"} onClick={() => set("headlineBold", !s.headlineBold)}><span className="font-bold">B</span> Negrito geral</Button>
-              <Button type="button" size="sm" variant={s.headlineItalic ? "default" : "outline"} onClick={() => set("headlineItalic", !s.headlineItalic)}><span className="italic">I</span> Itálico geral</Button>
-              <Button type="button" size="sm" variant={s.headlineUnderline ? "default" : "outline"} onClick={() => set("headlineUnderline", !s.headlineUnderline)}><span className="underline">U</span> Sublinhado geral</Button>
-            </div>
-            <div className="space-y-3 rounded-lg border border-border p-3">
-              <div><p className="text-sm font-medium">Formatação por palavra ou trecho</p><p className="mt-1 text-xs text-muted-foreground">Selecione o texto acima. Se nada estiver selecionado, o editor tenta aplicar ao redor do cursor.</p></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label>Cor da seleção</Label><div className="flex items-center gap-2"><input type="color" value={headlineWordColor} onChange={(e) => setHeadlineWordColor(e.target.value)} className="h-9 w-11 cursor-pointer rounded border border-border bg-transparent" /><Input value={headlineWordColor} onChange={(e) => setHeadlineWordColor(e.target.value)} /></div></div>
-                <div className="space-y-1.5"><Label>Tamanho da seleção (px)</Label><Input type="number" min={10} max={96} value={headlineWordSize} onChange={(e) => setHeadlineWordSize(Math.min(96, Math.max(10, Number(e.target.value) || 32)))} /></div>
+            {headlineExpanded && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-8">
+              <div className="flex max-h-full w-full max-w-4xl flex-col rounded-xl border border-[#3a3a3a] bg-[#222] p-4 text-white shadow-2xl">
+                <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold">Editor de headline expandido</p><Button type="button" variant="ghost" size="sm" onClick={()=>setHeadlineExpanded(false)}>Fechar ✕</Button></div>
+                <div ref={undefined} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" onInput={(e)=>{const parsed=parseHeadlineDom(e.currentTarget,s.headlineColor,s.headlineFontSize);set("headlineText",parsed.map(p=>p.text).join(""));set("headlineSegments",parsed);}} className="min-h-64 flex-1 overflow-auto whitespace-pre-wrap rounded-md border border-[#3a3a3a] bg-[#171717] p-5 text-lg outline-none" style={{fontFamily:s.headlineFontFamily,fontWeight:s.headlineFontWeight,lineHeight:s.headlineLineHeight,letterSpacing:s.headlineLetterSpacing+"px",textTransform:s.headlineTransform,textAlign:s.headlineAlign}}>{s.headlineText}</div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" size="sm" onClick={() => applyHeadlineStyle({ color: headlineWordColor })}>Aplicar cor</Button>
-                <Button type="button" size="sm" onClick={() => applyHeadlineStyle({ size: headlineWordSize })}>Aplicar tamanho</Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => applyHeadlineStyle({ bold: true })}><span className="font-bold">B</span> Negrito</Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => applyHeadlineStyle({ underline: true })}><span className="underline">U</span> Sublinhado</Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => applyHeadlineStyle({ italic: true })}><span className="italic">I</span> Itálico</Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => applyHeadlineStyle({ color: s.headlineColor, size: undefined, bold: undefined, underline: undefined, italic: undefined })}>Limpar estilo da seleção</Button>
-              </div>
-            </div>
             </div>}
           </div>
 
