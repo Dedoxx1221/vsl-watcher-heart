@@ -125,12 +125,13 @@ function parseHeadlineDom(root: HTMLElement, defaultColor: string, defaultSize: 
     if ((tag === "div" || tag === "p") && node.nextSibling) result.push({ text: "\n" });
   };
   for (const child of Array.from(root.childNodes)) walk(child);
-  while (result.length && result[result.length - 1].text === "\n") result.pop();
-  return result.map((part) => ({
-    ...part,
-    ...(part.color === defaultColor ? { color: undefined } : {}),
-    ...(part.size === defaultSize ? { size: undefined } : {}),
-  }));
+  while (result.length && result[result.length - 1]!.text === "\n") result.pop();
+  return result.map((part) => {
+    const out = { ...part };
+    if (out.color === defaultColor) delete out.color;
+    if (out.size === defaultSize) delete out.size;
+    return out;
+  });
 }
 
 function getCaretTextOffset(root: HTMLElement, range: Range): number {
@@ -229,9 +230,9 @@ function Editor() {
     let end = Math.max(0, Math.min(text.length, Math.max(headlineSelection.start, headlineSelection.end)));
     if (start === end) {
       start = Math.min(start, text.length);
-      while (start > 0 && !/\s/.test(text[start - 1])) start--;
+      while (start > 0 && !/\s/.test(text[start - 1] ?? "")) start--;
       end = Math.max(start, Math.min(text.length, headlineSelection.start));
-      while (end < text.length && !/\s/.test(text[end])) end++;
+      while (end < text.length && !/\s/.test(text[end] ?? "")) end++;
       if (start === end) return;
     }
     const source: HeadlineSegment[] = s.headlineSegments.length && s.headlineSegments.map((part) => part.text).join("") === text
@@ -245,8 +246,8 @@ function Editor() {
       offset = partEnd;
       const cuts = [...new Set([partStart, Math.max(partStart, Math.min(partEnd, start)), Math.max(partStart, Math.min(partEnd, end)), partEnd])].sort((a, b) => a - b);
       for (let i = 0; i < cuts.length - 1; i++) {
-        const a = cuts[i];
-        const b = cuts[i + 1];
+        const a = cuts[i]!;
+        const b = cuts[i + 1]!;
         if (b <= a) continue;
         const selected = a < end && b > start;
         next.push({ ...part, ...(selected ? patch : {}), text: text.slice(a, b) });
@@ -542,7 +543,7 @@ function Editor() {
                   </details>
                 </>
               )}
-            </div>
+            </div>}
             {headlineExpanded && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-8">
               <div className="flex max-h-full w-full max-w-4xl flex-col rounded-xl border border-[#3a3a3a] bg-[#222] p-4 text-white shadow-2xl">
                 <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold">Editor de headline expandido</p><Button type="button" variant="ghost" size="sm" onClick={()=>setHeadlineExpanded(false)}>Fechar ✕</Button></div>
