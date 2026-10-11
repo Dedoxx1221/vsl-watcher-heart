@@ -171,9 +171,9 @@ function Dashboard() {
         <>
           {metricsVisible && (metricsView === "retention" ? <Body a={a} offer={video?.offer_time_seconds ?? null} video={video ? { id: video.id, video_url: video.video_url, thumbnail_url: video.thumbnail_url ?? null, checkout_url: video.checkout_url ?? null, offer_time_seconds: video.offer_time_seconds ?? null, player_settings: video.player_settings } : null} live={live} /> : (
             <div className="panel p-5">
-              <h2 className="mb-4 text-lg font-semibold">{({countries:"Países",devices:"Dispositivos",browsers:"Navegadores",sources:"Origem do tráfego"} as const)[metricsView]} — audiência ao vivo</h2>
-              <p className="mb-4 text-sm text-muted-foreground">Distribuição das sessões ativas neste momento. A seleção de período continua aplicada às métricas históricas da aba Retenção geral.</p>
-              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => metricsView === "countries" ? countryDisplayName(v.country) : metricsView === "devices" ? (v.device_type || "Desconhecido") : metricsView === "browsers" ? (v.browser || "Desconhecido") : ([v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / ") || (v.referrer ? (() => { try { return new URL(v.referrer!).hostname; } catch { return v.referrer!; } })() : "Direto / desconhecido")))} total={live?.active_count ?? 0} empty="Nenhuma sessão ativa para exibir." />
+              <h2 className="mb-1 text-lg font-semibold">{({countries:"Países",devices:"Dispositivos",browsers:"Navegadores",sources:"Origem do tráfego"} as const)[metricsView]}</h2>
+              <p className="mb-4 text-sm text-muted-foreground">Dados históricos no período {PERIODS[period]}{campaign !== "__all" ? ` · Campanha: ${campaign}` : ""}. Os números abaixo não representam apenas espectadores ao vivo.</p>
+              <LiveBreakdown items={((({countries:a.countries,devices:a.devices,browsers:a.browsers,sources:a.sources} as const)[metricsView]) ?? [])} total={a.views} empty="Não há dados para este período." />
             </div>
           ))}
           {showConversions && <div className="panel p-5"><h2 className="mb-4 text-lg font-semibold">Conversões</h2><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Kpi label="Plays iniciados" value={String(a.plays)} /><Kpi label="Chegaram à oferta" value={String(a.reached_offer)} /><Kpi label="Cliques no checkout" value={String(a.clicked_checkout)} /><Kpi label="Taxa de clique no checkout" value={`${pct(a.clicked_checkout, a.plays).toFixed(2)}%`} /></div></div>}
