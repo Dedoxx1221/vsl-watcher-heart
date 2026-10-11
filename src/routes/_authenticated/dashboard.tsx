@@ -166,47 +166,6 @@ function Dashboard() {
         </div>
       </header>
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold">Audiência agora</h2>
-            <p className="text-xs text-muted-foreground">Sessões vistas nos últimos 35 segundos · sincronizado a cada 5 s</p>
-          </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-600">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Ao vivo
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Radio className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Espectadores ativos</p><p className="num text-2xl font-semibold">{live?.active_count ?? 0}</p></div>
-          </div>
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600"><ChartNoAxesColumn className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Assistindo neste instante</p><p className="num text-2xl font-semibold">{live?.playing_count ?? 0}</p></div>
-          </div>
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600"><Globe className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Origens identificadas</p><p className="num text-2xl font-semibold">{new Set((live?.viewers ?? []).map(v => v.utm_source || (v.referrer ? (() => { try { return new URL(v.referrer!).hostname; } catch { return v.referrer; } })() : null)).filter(Boolean)).size}</p></div>
-          </div>
-          <div className="panel flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600"><MapPin className="h-5 w-5" /></div>
-            <div><p className="text-xs text-muted-foreground">Localizações conhecidas</p><p className="num text-2xl font-semibold">{new Set((live?.viewers ?? []).map(v => [v.city, v.region, v.country].filter(Boolean).join(", ")).filter(Boolean)).size}</p></div>
-          </div>
-        </div>
-        <details className="panel group">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
-            <div><p className="text-sm font-semibold">Explorar audiência ao vivo</p><p className="mt-0.5 text-xs text-muted-foreground">Países, origens, navegadores e dispositivos sem poluir a visão principal</p></div>
-            <span className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground group-open:bg-secondary">Ver detalhes <span className="ml-1 inline-block transition-transform group-open:rotate-180">⌄</span></span>
-          </summary>
-          <div className="grid gap-5 border-t border-border p-4 md:grid-cols-2 xl:grid-cols-4">
-            <div><h3 className="mb-3 text-sm font-semibold">Países</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => countryDisplayName(v.country))} total={live?.active_count ?? 0} empty="Sem localização disponível." /></div>
-            <div><h3 className="mb-3 text-sm font-semibold">Origem / UTM</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => { const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / "); if (utm) return utm; if (!v.referrer) return "Direto / desconhecido"; try { return new URL(v.referrer).hostname; } catch { return v.referrer; } })} total={live?.active_count ?? 0} empty="Sem origem identificada." /></div>
-            <div><h3 className="mb-3 text-sm font-semibold">Navegadores</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de navegador." /></div>
-            <div><h3 className="mb-3 text-sm font-semibold">Dispositivos</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de dispositivo." /></div>
-          </div>
-        </details>
-      </section>
 
       {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : (
         <>
@@ -381,6 +340,22 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
             <p className="num text-2xl font-semibold text-primary">{(series.reduce((r, p) => (p.t <= cursor ? p.r : r), series[0]?.r ?? 0)).toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground">ainda assistindo neste ponto</p>
           </div>
+          <details className="rounded-xl border border-border/70 bg-background/50">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 p-3">
+              <span className="flex items-center gap-2 text-sm font-semibold"><Radio className="h-4 w-4 text-emerald-500" /> Audiência ao vivo <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-600">{live?.active_count ?? 0}</span></span>
+              <span className="text-xs text-muted-foreground">⌄</span>
+            </summary>
+            <div className="space-y-4 border-t border-border p-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-secondary/60 p-2"><p className="text-[11px] text-muted-foreground">Ativos</p><p className="num text-lg font-semibold">{live?.active_count ?? 0}</p></div>
+                <div className="rounded-lg bg-secondary/60 p-2"><p className="text-[11px] text-muted-foreground">Assistindo</p><p className="num text-lg font-semibold">{live?.playing_count ?? 0}</p></div>
+              </div>
+              <div><h3 className="mb-2 text-xs font-semibold">Países</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => countryDisplayName(v.country))} total={live?.active_count ?? 0} empty="Sem localização disponível." /></div>
+              <div><h3 className="mb-2 text-xs font-semibold">Origem / UTM</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => { const utm = [v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / "); if (utm) return utm; if (!v.referrer) return "Direto / desconhecido"; try { return new URL(v.referrer).hostname; } catch { return v.referrer; } })} total={live?.active_count ?? 0} empty="Sem origem identificada." /></div>
+              <div><h3 className="mb-2 text-xs font-semibold">Navegadores</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.browser || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de navegador." /></div>
+              <div><h3 className="mb-2 text-xs font-semibold">Dispositivos</h3><LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => v.device_type || "Desconhecido")} total={live?.active_count ?? 0} empty="Sem dados de dispositivo." /></div>
+            </div>
+          </details>
         </div>
         <div className="min-w-0 rounded-xl border border-border/70 bg-background/50 p-2 pt-4 md:p-4 md:pt-5">
           <ResponsiveContainer>
