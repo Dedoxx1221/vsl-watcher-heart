@@ -1,3 +1,5 @@
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS browser text;
+
 -- Analytics breakdowns count sessions that actually played the video.
 CREATE OR REPLACE FUNCTION public.get_video_analytics(_video_id uuid, _from timestamptz, _to timestamptz, _campaign text)
 RETURNS jsonb
