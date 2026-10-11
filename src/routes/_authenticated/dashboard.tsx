@@ -206,7 +206,7 @@ function Dashboard() {
           {metricsVisible && (metricsView === "retention" ? <Body a={a} offer={video?.offer_time_seconds ?? null} video={video ? { id: video.id, video_url: video.video_url, thumbnail_url: video.thumbnail_url ?? null, checkout_url: video.checkout_url ?? null, offer_time_seconds: video.offer_time_seconds ?? null, player_settings: video.player_settings } : null} live={live} /> : (
             <div className="panel p-5">
               <h2 className="mb-1 text-lg font-semibold">{({countries:"Países",devices:"Dispositivos",browsers:"Navegadores",sources:"Origem do tráfego"} as const)[metricsView]}</h2>
-              <p className="mb-4 text-sm text-muted-foreground">Dados históricos no período {PERIODS[period]}{campaign !== "__all" ? ` · Campanha: ${campaign}` : ""}. Os números abaixo não representam apenas espectadores ao vivo.</p>
+              <p className="mb-4 text-sm text-muted-foreground">Dados históricos no período {period === "custom" ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pt-BR") : PERIODS[period]}{campaign !== "__all" ? ` · Campanha: ${campaign}` : ""}. Os números abaixo não representam apenas espectadores ao vivo.</p>
               <LiveBreakdown items={((({countries:a.countries,devices:a.devices,browsers:a.browsers,sources:a.sources} as const)[metricsView]) ?? [])} total={a.views} empty="Não há dados para este período." />
             </div>
           ))}
