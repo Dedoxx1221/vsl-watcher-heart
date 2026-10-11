@@ -71,13 +71,16 @@ BEGIN
         SELECT count(*)
         FROM max_continuous mc
         WHERE mc.reached_s >= st.t
+           OR (st.t >= dur - 2 AND mc.reached_s >= dur - 2)
       ) END::bigint AS viewers
     FROM sample_times st
   ),
   marks AS (
     SELECT p,
       CASE WHEN dur <= 0 THEN 0
-      ELSE (SELECT count(*) FROM max_continuous mc WHERE mc.reached_s >= dur * p / 100.0)
+      ELSE (SELECT count(*) FROM max_continuous mc
+        WHERE mc.reached_s >= dur * p / 100.0
+           OR (p = 100 AND mc.reached_s >= dur - 2))
       END AS n
     FROM unnest(ARRAY[10,25,50,75,100]) p
   ),
