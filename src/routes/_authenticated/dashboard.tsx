@@ -60,14 +60,9 @@ function Dashboard() {
 
     setResettingMetrics(true);
     try {
-      // Remove os dados brutos que alimentam todas as métricas: intervalos assistidos,
-      // eventos (incluindo pitch/checkout) e sessões/visualizações. O vídeo e sua configuração permanecem.
-      const rangesResult = await supabase.from("watch_ranges").delete().eq("video_id", videoId);
-      if (rangesResult.error) throw rangesResult.error;
-      const eventsResult = await supabase.from("events").delete().eq("video_id", videoId);
-      if (eventsResult.error) throw eventsResult.error;
-      const sessionsResult = await supabase.from("sessions").delete().eq("video_id", videoId);
-      if (sessionsResult.error) throw sessionsResult.error;
+      // Executa a limpeza em uma única transação no banco, validando a propriedade da VSL.
+      const { error: resetError } = await supabase.rpc("reset_video_metrics", { _video_id: videoId });
+      if (resetError) throw resetError;
 
       // Invalida todas as consultas de analytics, incluindo chaves com filtros/parâmetros.
       await Promise.all([
