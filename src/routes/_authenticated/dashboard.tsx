@@ -179,7 +179,7 @@ function Dashboard() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => setCompareMode(v => !v)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${compareMode ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-secondary"}`}><ArrowLeftRight className="h-4 w-4" /> Comparar {compareMode ? "ativado" : ""}</button>
-            <button type="button" onClick={() => { const rows = [["Métrica","Valor"],["Visualizações",a?.views ?? 0],["Espectadores únicos",a?.unique_viewers ?? 0],["Plays",a?.plays ?? 0],["Tempo médio assistido",a?.avg_watched ?? 0],["Chegaram à oferta",a?.reached_offer ?? 0],["Cliques no checkout",a?.clicked_checkout ?? 0]]; const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(";")).join("\\n"); const url = URL.createObjectURL(new Blob(["\\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })); const link = document.createElement("a"); link.href = url; link.download = `vexora-metricas-${video?.name ?? "vsl"}.csv`; link.click(); URL.revokeObjectURL(url); }} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Download className="h-4 w-4" /> Baixar métricas</button>
+            <button type="button" onClick={() => { const rows = [["Métrica","Valor"],["Espectadores (plays iniciados)",a?.plays ?? 0],["Espectadores únicos",a?.unique_viewers ?? 0],["Plays iniciados",a?.plays ?? 0],["Tempo médio assistido",a?.avg_watched ?? 0],["Chegaram à oferta",a?.reached_offer ?? 0],["Cliques no checkout",a?.clicked_checkout ?? 0]]; const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(";")).join("\\n"); const url = URL.createObjectURL(new Blob(["\\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })); const link = document.createElement("a"); link.href = url; link.download = `vexora-metricas-${video?.name ?? "vsl"}.csv`; link.click(); URL.revokeObjectURL(url); }} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Download className="h-4 w-4" /> Baixar métricas</button>
             <button type="button" onClick={() => { void navigator.clipboard.writeText(window.location.href).then(() => toast.success("Link do relatório copiado.")).catch(() => toast.error("Não foi possível copiar o link.")); }} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Share2 className="h-4 w-4" /> Compartilhar</button>
             <button type="button" onClick={() => setMetricsVisible(v => !v)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Eye className="h-4 w-4" /> {metricsVisible ? "Ocultar métricas" : "Visualizar métricas"}</button>
           </div>
@@ -197,7 +197,7 @@ function Dashboard() {
             <div className="panel p-5">
               <h2 className="mb-1 text-lg font-semibold">{({countries:"Países",devices:"Dispositivos",browsers:"Navegadores",sources:"Origem do tráfego"} as const)[metricsView]}</h2>
               <p className="mb-4 text-sm text-muted-foreground">Dados históricos no período {period === "custom" ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pt-BR") : PERIODS[period]}{campaign !== "__all" ? ` · Campanha: ${campaign}` : ""}. Os números abaixo não representam apenas espectadores ao vivo.</p>
-              <LiveBreakdown items={((({countries:a.countries,devices:a.devices,browsers:a.browsers,sources:a.sources} as const)[metricsView]) ?? []).map(item => metricsView === "countries" ? { ...item, label: countryDisplayName(item.label) } : item)} total={a.views} empty="Não há dados para este período." />
+              <LiveBreakdown items={((({countries:a.countries,devices:a.devices,browsers:a.browsers,sources:a.sources} as const)[metricsView]) ?? []).map(item => metricsView === "countries" ? { ...item, label: countryDisplayName(item.label) } : item)} total={a.plays} empty="Não há dados para este período." />
             </div>
           ))}
           {showConversions && <div className="panel p-5"><h2 className="mb-4 text-lg font-semibold">Conversões</h2><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Kpi label="Plays iniciados" value={String(a.plays)} /><Kpi label="Chegaram à oferta" value={String(a.reached_offer)} /><Kpi label="Cliques no checkout" value={String(a.clicked_checkout)} /><Kpi label="Taxa de clique no checkout" value={`${pct(a.clicked_checkout, a.plays).toFixed(2)}%`} /></div></div>}
@@ -339,8 +339,8 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
   return (
     <>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
-        <Kpi label="Visualizações" value={String(a.views)} sub={`${a.unique_viewers} espectadores únicos`} />
-        <Kpi label="Plays iniciados" value={String(a.plays)} sub={`${pct(a.plays, a.views).toFixed(1)}% play rate`} />
+        <Kpi label="Espectadores" value={String(a.plays)} sub="Pessoas que iniciaram a VSL" />
+        <Kpi label="Plays iniciados" value={String(a.plays)} sub="Mesmo total de espectadores" />
         <Kpi label="Tempo médio assistido" value={fmtTime(a.avg_watched)} sub={`pausado: ${fmtTime(a.avg_paused)}`} />
         <Kpi label="Retenção média" value={`${avgRetention.toFixed(1)}%`} sub="da duração total" />
         <Kpi label="Chegaram à oferta" value={String(a.reached_offer)} sub={`${pct(a.reached_offer, a.plays).toFixed(1)}% dos plays`} />
