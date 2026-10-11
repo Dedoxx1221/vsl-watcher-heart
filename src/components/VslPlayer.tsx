@@ -36,7 +36,7 @@ function fire(cfg: PlayerSettings, fb: string, ga: string) {
   if (cfg.ga4) w.gtag?.("event", ga);
 }
 
-export function VslPlayer({ video, settings, preview = false, onAutoplayImageTransform }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean; onAutoplayImageTransform?: ((next: { x: number; y: number; size: number }) => void) | undefined }) {
+export function VslPlayer({ video, settings, preview = false, trackingEnabled = true, onAutoplayImageTransform }: { video: PlayerVideo; settings?: PlayerSettings; preview?: boolean; trackingEnabled?: boolean; onAutoplayImageTransform?: ((next: { x: number; y: number; size: number }) => void) | undefined }) {
   const cfg = settings ?? parseSettings(video.player_settings);
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
@@ -78,16 +78,16 @@ export function VslPlayer({ video, settings, preview = false, onAutoplayImageTra
     if (cfg.pixels) loadPixels(cfg);
     setQuery(window.location.search.replace(/^\?/, ""));
     const campaign = params.get("utm_campaign") || params.get("campaign") || params.get("src") || null;
-    const t = new VslTracker(video.id, video.offer_time_seconds, campaign, `${window.location.origin}/api/public/track`);
+    const t = trackingEnabled ? new VslTracker(video.id, video.offer_time_seconds, campaign, `${window.location.origin}/api/public/track`) : null;
     tracker.current = t;
-    const leave = () => { if (started.current) t.onLeave(ref.current?.currentTime ?? 0); };
-    const vis = () => { if (document.visibilityState === "hidden") t.flush(true); };
+    const leave = () => { if (t && started.current) t.onLeave(ref.current?.currentTime ?? 0); };
+    const vis = () => { if (t && document.visibilityState === "hidden") t.flush(true); };
     window.addEventListener("pagehide", leave);
     document.addEventListener("visibilitychange", vis);
     if (cfg.autoplay) ref.current?.play().catch(() => {}); // muted preview, not tracked
-    return () => { window.removeEventListener("pagehide", leave); document.removeEventListener("visibilitychange", vis); t.destroy(); };
+    return () => { window.removeEventListener("pagehide", leave); document.removeEventListener("visibilitychange", vis); t?.destroy(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [video.id, video.offer_time_seconds, preview, cfg.autoplay]);
+  }, [video.id, video.offer_time_seconds, preview, trackingEnabled, cfg.autoplay]);
 
   useEffect(() => {
     if (!wrap.current || window.parent === window) return;
