@@ -244,7 +244,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
     const byTime = new Map<number, { t: number; n: number; r: number }>();
     byTime.set(0, { t: 0, n: a.plays, r: 100 });
     observed.forEach((point) => byTime.set(point.t, point));
-    byTime.set(a.duration, { t: a.duration, n: 0, r: 0 });
+    // The final point comes from measured playback coverage, never a fabricated zero.
     return [...byTime.values()].sort((left, right) => left.t - right.t);
   }, [a.retention, a.plays, a.duration]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
