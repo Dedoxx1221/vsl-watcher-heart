@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { VslPlayer } from "@/components/VslPlayer";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Radio, MapPin, Globe, ChartNoAxesColumn } from "lucide-react";
+import { Radio, MapPin, Globe, ChartNoAxesColumn, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -26,11 +27,41 @@ const PERIODS = { "1": "Hoje", "7": "7 dias", "30": "30 dias", "90": "90 dias", 
 
 function Dashboard() {
   const { data: videos } = useSuspenseQuery(videosQuery);
+  const queryClient = useQueryClient();
+  const [resettingMetrics, setResettingMetrics] = useState(false);
   const search = Route.useSearch();
   const [videoId, setVideoId] = useState(search.v ?? videos[0]?.id);
   const [period, setPeriod] = useState<keyof typeof PERIODS>("30");
   const [campaign, setCampaign] = useState("__all");
   const video = videos.find((v) => v.id === videoId);
+
+  const resetMetrics = async () => {
+    if (!videoId || !video) return;
+    const confirmed = window.confirm(`Tem certeza que deseja apagar todas as métricas da VSL "${video.name}"? Essa ação é irreversível e não excluirá o vídeo.`);
+    if (!confirmed) return;
+
+    setResettingMetrics(true);
+    try {
+      // Exclui primeiro os dados dependentes e depois as sessões, sempre limitando à VSL selecionada.
+      const rangesResult = await supabase.from("watch_ranges").delete().eq("video_id", videoId);
+      if (rangesResult.error) throw rangesResult.error;
+      const eventsResult = await supabase.from("events").delete().eq("video_id", videoId);
+      if (eventsResult.error) throw eventsResult.error;
+      const sessionsResult = await supabase.from("sessions").delete().eq("video_id", videoId);
+      if (sessionsResult.error) throw sessionsResult.error;
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["analytics", videoId] }),
+        queryClient.invalidateQueries({ queryKey: ["live-vsl-analytics", videoId] }),
+      ]);
+      toast.success("Métricas da VSL resetadas com sucesso.");
+    } catch (error) {
+      console.error("Erro ao resetar métricas:", error);
+      toast.error("Não foi possível resetar as métricas. Verifique as permissões do banco de dados.");
+    } finally {
+      setResettingMetrics(false);
+    }
+  };
 
   const { data: live } = useQuery({
     queryKey: ["live-vsl-analytics", videoId],
@@ -95,6 +126,16 @@ function Dashboard() {
                 {(a?.campaigns ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
+            <button
+              type="button"
+              onClick={resetMetrics}
+              disabled={resettingMetrics || !videoId}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
+              title="Apagar as métricas da VSL selecionada"
+            >
+              <RotateCcw className={`h-4 w-4 ${resettingMetrics ? "animate-spin" : ""}`} />
+              {resettingMetrics ? "Resetando..." : "Resetar métricas"}
+            </button>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border pb-4 text-xs text-muted-foreground">
