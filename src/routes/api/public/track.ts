@@ -61,7 +61,8 @@ export const Route = createFileRoute("/api/public/track")({
         const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
         const { session, stats, events, ranges } = body;
         const ua = request.headers.get("user-agent") ?? "";
-        const deviceType = /tablet|ipad/i.test(ua) ? "Tablet" : /mobile|android|iphone/i.test(ua) ? "Mobile" : "Desktop";
+        const deviceType = /ipad|tablet|playbook|silk/i.test(ua) || (/android/i.test(ua) && !/mobile/i.test(ua)) ? "Tablet" : /mobile|iphone|ipod|android.*mobile|windows phone/i.test(ua) ? "Mobile" : "Desktop";
+        const browser = /edg\//i.test(ua) ? "Microsoft Edge" : /opr\//i.test(ua) || /opera/i.test(ua) ? "Opera" : /firefox\//i.test(ua) ? "Firefox" : /samsungbrowser\//i.test(ua) ? "Samsung Internet" : /chrome\//i.test(ua) && !/edg\//i.test(ua) ? "Chrome" : /safari\//i.test(ua) ? "Safari" : ua ? "Outro" : null;
         const country = request.headers.get("cf-ipcountry") ?? request.headers.get("x-vercel-ip-country") ?? null;
         const region = request.headers.get("x-vercel-ip-country-region") ?? request.headers.get("cf-region") ?? null;
         const city = request.headers.get("x-vercel-ip-city") ?? request.headers.get("cf-ipcity") ?? null;
@@ -86,6 +87,7 @@ export const Route = createFileRoute("/api/public/track")({
           region: existing?.region ?? region,
           city: existing?.city ?? (city ? decodeURIComponent(city.replace(/\\+/g, " ")) : null),
           device_type: existing?.device_type ?? deviceType,
+          browser: existing?.browser ?? browser,
           utm_source: existing?.utm_source ?? session.utm_source ?? null,
           utm_medium: existing?.utm_medium ?? session.utm_medium ?? null,
           utm_campaign: existing?.utm_campaign ?? session.utm_campaign ?? session.campaign ?? null,
