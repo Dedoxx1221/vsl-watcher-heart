@@ -306,7 +306,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
         <div className="min-w-0 rounded-xl border border-border/70 bg-background/50 p-2 pt-4 md:p-4 md:pt-5">
           <ResponsiveContainer>
             <AreaChart
-              data={chartSeries}
+              data={series}
               margin={{ left: -10, right: 10 }}
               className="cursor-crosshair"
               onClick={(st) => { const t = Number((st as { activeLabel?: number | string })?.activeLabel); if (!isNaN(t)) seek(t); }}
