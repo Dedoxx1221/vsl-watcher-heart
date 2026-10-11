@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import { BarChart3, Film, LogOut, Sparkles, SlidersHorizontal, CirclePlay, ArrowUpRight } from "lucide-react";
+import { BarChart3, Film, LogOut, SlidersHorizontal, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -15,17 +15,17 @@ export const Route = createFileRoute("/_authenticated")({
 function Layout() {
   const nav = useNavigate();
   const item = "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-accent/80 hover:text-foreground";
-  const active = { className: "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_oklch(0.79_0.17_150_/_16%)]" };
+  const active = { className: "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_oklch(0.66_0.25_292_/_28%)]" };
   return (
     <div className="min-h-screen md:flex">
       <aside className="z-20 border-b border-sidebar-border/80 bg-sidebar/95 p-4 backdrop-blur-xl md:sticky md:top-0 md:flex md:h-screen md:w-[248px] md:shrink-0 md:flex-col md:border-b-0 md:border-r">
         <Link preload="intent" to="/videos" className="mb-5 flex items-center gap-3 rounded-2xl px-2 py-3 transition-opacity hover:opacity-80">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/15">
-            <CirclePlay className="h-6 w-6" strokeWidth={2.3} />
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 via-violet-600 to-blue-600 shadow-lg shadow-violet-600/30">
+            <svg viewBox="0 0 48 48" role="img" aria-label="Símbolo Vexora" className="h-8 w-8" fill="none"><path d="M5 9 L17 11 L25 24 L42 5 L31 31 L23 41 Z" fill="white"/><path d="M5 9 L17 11 L25 24 L31 31 L23 41 Z" fill="white" fillOpacity=".82"/></svg>
           </span>
           <span className="min-w-0">
-            <span className="block font-display text-xl font-bold tracking-tight text-foreground">Vexora</span>
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Video intelligence</span>
+            <span className="block font-display text-xl font-bold tracking-[0.16em] text-foreground">VEXORA</span>
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Vídeos que vendem</span>
           </span>
         </Link>
 
@@ -33,12 +33,10 @@ function Layout() {
         <nav className="flex gap-1.5 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
           <Link preload="intent" to="/videos" className={item} activeProps={active}><Film className="h-[18px] w-[18px] shrink-0" />Biblioteca</Link>
           <Link preload="intent" to="/dashboard" className={item} activeProps={active}><BarChart3 className="h-[18px] w-[18px] shrink-0" />Analytics</Link>
-          <Link preload="intent" to="/ai" className={item} activeProps={active}><Sparkles className="h-[18px] w-[18px] shrink-0" />Diagnóstico IA</Link>
           <Link preload="intent" to="/editor" className={item} activeProps={active}><SlidersHorizontal className="h-[18px] w-[18px] shrink-0" />Editor do player</Link>
         </nav>
 
         <div className="mt-5 hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent p-4 md:block">
-          <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary"><Sparkles className="h-4 w-4" /></div>
           <p className="text-sm font-semibold text-foreground">Transforme dados em decisões</p>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">Acompanhe a retenção e encontre oportunidades para melhorar suas VSLs.</p>
           <Link preload="intent" to="/dashboard" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Ver analytics <ArrowUpRight className="h-3.5 w-3.5" /></Link>
