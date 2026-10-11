@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VslPlayer } from "@/components/VslPlayer";
 import { videosQuery, fmtTime, pct, type Analytics } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Radio, MapPin, Globe, ChartNoAxesColumn, RotateCcw } from "lucide-react";
+import { Radio, MapPin, Globe, ChartNoAxesColumn, RotateCcw, Download, Share2, Eye, ChevronLeft, ChevronRight, ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -33,6 +33,10 @@ function Dashboard() {
   const [videoId, setVideoId] = useState(search.v ?? videos[0]?.id);
   const [period, setPeriod] = useState<keyof typeof PERIODS>("30");
   const [campaign, setCampaign] = useState("__all");
+  const [compareMode, setCompareMode] = useState(false);
+  const [showConversions, setShowConversions] = useState(false);
+  const [metricsView, setMetricsView] = useState<"retention" | "countries" | "devices" | "browsers" | "sources">("retention");
+  const [metricsVisible, setMetricsVisible] = useState(true);
   const video = videos.find((v) => v.id === videoId);
 
   const resetMetrics = async () => {
@@ -138,11 +142,27 @@ function Dashboard() {
             </button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border pb-4 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Dados ao vivo</span>
-          <span>·</span><span>Atualização em tempo real</span>
-          <span>·</span><span>Período: {PERIODS[period]}</span>
-          {campaign !== "__all" && <><span>·</span><span className="max-w-48 truncate">Campanha: {campaign}</span></>}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-2"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Dados ao vivo</span>
+            <span>·</span><span>Período: {PERIODS[period]}</span>
+            {campaign !== "__all" && <><span>·</span><span className="max-w-48 truncate">Campanha: {campaign}</span></>}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => setCompareMode(v => !v)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${compareMode ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-secondary"}`}><ArrowLeftRight className="h-4 w-4" /> Comparar {compareMode ? "ativado" : ""}</button>
+            <div className="flex items-center gap-1 rounded-lg border border-border p-1">
+              <button type="button" aria-label="Período anterior" onClick={() => setPeriod(p => p === "all" ? "90" : p === "90" ? "30" : p === "30" ? "7" : "1")} className="rounded p-1.5 hover:bg-secondary"><ChevronLeft className="h-4 w-4" /></button>
+              <span className="px-2 text-xs">{PERIODS[period]}</span>
+              <button type="button" aria-label="Próximo período" onClick={() => setPeriod(p => p === "1" ? "7" : p === "7" ? "30" : p === "30" ? "90" : "all")} className="rounded p-1.5 hover:bg-secondary"><ChevronRight className="h-4 w-4" /></button>
+            </div>
+            <button type="button" onClick={() => { const rows = [["Métrica","Valor"],["Visualizações",a?.views ?? 0],["Espectadores únicos",a?.unique_viewers ?? 0],["Plays",a?.plays ?? 0],["Tempo médio assistido",a?.avg_watched ?? 0],["Chegaram à oferta",a?.reached_offer ?? 0],["Cliques no checkout",a?.clicked_checkout ?? 0]]; const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(";")).join("\\n"); const url = URL.createObjectURL(new Blob(["\\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })); const link = document.createElement("a"); link.href = url; link.download = `vexora-metricas-${video?.name ?? "vsl"}.csv`; link.click(); URL.revokeObjectURL(url); }} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Download className="h-4 w-4" /> Baixar métricas</button>
+            <button type="button" onClick={() => { void navigator.clipboard.writeText(window.location.href).then(() => toast.success("Link do relatório copiado.")).catch(() => toast.error("Não foi possível copiar o link.")); }} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Share2 className="h-4 w-4" /> Compartilhar</button>
+            <button type="button" onClick={() => setMetricsVisible(v => !v)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Eye className="h-4 w-4" /> {metricsVisible ? "Ocultar métricas" : "Visualizar métricas"}</button>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1 border-b border-border pb-0">
+          {([{id:"retention",label:"Retenção geral"},{id:"countries",label:"Países"},{id:"devices",label:"Dispositivos"},{id:"browsers",label:"Navegadores"},{id:"sources",label:"Origem do tráfego"}] as const).map(tab => <button key={tab.id} type="button" onClick={() => setMetricsView(tab.id)} className={`border-b-2 px-3 py-3 text-sm font-medium transition-colors ${metricsView === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{tab.label}</button>)}
+          <button type="button" onClick={() => setShowConversions(v => !v)} className="ml-auto flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground"><span>Conversões</span><span className={`relative h-5 w-9 rounded-full transition-colors ${showConversions ? "bg-primary" : "bg-muted"}`}><span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${showConversions ? "translate-x-4" : "translate-x-0.5"}`} /></span></button>
         </div>
       </header>
 
@@ -188,7 +208,19 @@ function Dashboard() {
         </details>
       </section>
 
-      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : <Body a={a} offer={video?.offer_time_seconds ?? null} video={video ? { id: video.id, video_url: video.video_url, thumbnail_url: video.thumbnail_url ?? null, checkout_url: video.checkout_url ?? null, offer_time_seconds: video.offer_time_seconds ?? null, player_settings: video.player_settings } : null} live={live} />}
+      {isLoading || !a ? <div className="panel h-96 animate-pulse" /> : (
+        <>
+          {metricsVisible && (metricsView === "retention" ? <Body a={a} offer={video?.offer_time_seconds ?? null} video={video ? { id: video.id, video_url: video.video_url, thumbnail_url: video.thumbnail_url ?? null, checkout_url: video.checkout_url ?? null, offer_time_seconds: video.offer_time_seconds ?? null, player_settings: video.player_settings } : null} live={live} /> : (
+            <div className="panel p-5">
+              <h2 className="mb-4 text-lg font-semibold">{({countries:"Países",devices:"Dispositivos",browsers:"Navegadores",sources:"Origem do tráfego"} as const)[metricsView]} — audiência ao vivo</h2>
+              <p className="mb-4 text-sm text-muted-foreground">Distribuição das sessões ativas neste momento. A seleção de período continua aplicada às métricas históricas da aba Retenção geral.</p>
+              <LiveBreakdown items={aggregateLive(live?.viewers ?? [], v => metricsView === "countries" ? countryDisplayName(v.country) : metricsView === "devices" ? (v.device_type || "Desconhecido") : metricsView === "browsers" ? (v.browser || "Desconhecido") : ([v.utm_source, v.utm_medium, v.utm_campaign].filter(Boolean).join(" / ") || (v.referrer ? (() => { try { return new URL(v.referrer!).hostname; } catch { return v.referrer!; } })() : "Direto / desconhecido")))} total={live?.active_count ?? 0} empty="Nenhuma sessão ativa para exibir." />
+            </div>
+          ))}
+          {showConversions && <div className="panel p-5"><h2 className="mb-4 text-lg font-semibold">Conversões</h2><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Kpi label="Plays iniciados" value={String(a.plays)} /><Kpi label="Chegaram à oferta" value={String(a.reached_offer)} /><Kpi label="Cliques no checkout" value={String(a.clicked_checkout)} /><Kpi label="Taxa de clique no checkout" value={`${pct(a.clicked_checkout, a.plays).toFixed(2)}%`} /></div></div>}
+          {compareMode && <p className="text-xs text-muted-foreground">Modo comparar ativado. Para comparar duas VSLs/períodos com duas séries independentes, essa visualização ainda precisa de uma segunda consulta de dados.</p>}
+        </>
+      )}
     </div>
   );
 }
