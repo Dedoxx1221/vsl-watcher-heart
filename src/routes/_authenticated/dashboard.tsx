@@ -23,7 +23,20 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-const PERIODS = { "1": "Hoje", "7": "7 dias", "30": "30 dias", "90": "90 dias", all: "Todo período" } as const;
+const PERIODS = { today: "Hoje", yesterday: "Ontem", "7": "7 dias", "30": "30 dias", custom: "Escolher data" } as const;
+type PeriodKey = keyof typeof PERIODS;
+
+function localDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function localDayStart(dateString: string) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day, 0, 0, 0, 0);
+}
 
 function Dashboard() {
   const { data: videos } = useSuspenseQuery(videosQuery);
@@ -31,7 +44,8 @@ function Dashboard() {
   const [resettingMetrics, setResettingMetrics] = useState(false);
   const search = Route.useSearch();
   const [videoId, setVideoId] = useState(search.v ?? videos[0]?.id);
-  const [period, setPeriod] = useState<keyof typeof PERIODS>("30");
+  const [period, setPeriod] = useState<PeriodKey>("today");
+  const [selectedDate, setSelectedDate] = useState(() => localDateInputValue(new Date()));
   const [campaign, setCampaign] = useState("__all");
   const [compareMode, setCompareMode] = useState(false);
   const [showConversions, setShowConversions] = useState(false);
@@ -90,14 +104,27 @@ function Dashboard() {
   });
 
   const { data: a, isLoading } = useQuery({
-    queryKey: ["analytics", videoId, period, campaign],
+    queryKey: ["analytics", videoId, period, selectedDate, campaign],
     enabled: !!videoId,
     refetchInterval: 15000,
     queryFn: async () => {
-      const from = period === "all" ? new Date(0) : new Date(Date.now() - Number(period) * 86400000);
-      if (period === "1") from.setHours(0, 0, 0, 0);
+      const now = new Date();
+      let from: Date;
+      let to: Date;
+      if (period === "custom") {
+        from = localDayStart(selectedDate);
+        to = new Date(from);
+        to.setDate(to.getDate() + 1);
+      } else if (period === "yesterday") {
+        from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        to = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else {
+        const days = period === "today" ? 1 : Number(period);
+        to = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days + 1);
+      }
       const { data, error } = await supabase.rpc("get_video_analytics", {
-        _video_id: videoId!, _from: from.toISOString(), _to: new Date(Date.now() + 60000).toISOString(),
+        _video_id: videoId!, _from: from.toISOString(), _to: to.toISOString(),
         _campaign: campaign === "__all" ? (null as unknown as string) : campaign,
       });
       if (error) throw error;
@@ -125,10 +152,11 @@ function Dashboard() {
               <SelectTrigger className="w-48"><SelectValue placeholder="Selecionar VSL" /></SelectTrigger>
               <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent>
             </Select>
-            <Select value={period} onValueChange={(v) => setPeriod(v as keyof typeof PERIODS)}>
+            <Select value={period} onValueChange={(v) => setPeriod(v as PeriodKey)}>
               <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
               <SelectContent>{Object.entries(PERIODS).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent>
             </Select>
+            {period === "custom" && <input aria-label="Selecionar data das métricas" type="date" value={selectedDate} max={localDateInputValue(new Date())} onChange={(event) => setSelectedDate(event.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" />}
             <Select value={campaign} onValueChange={setCampaign}>
               <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar campanha" /></SelectTrigger>
               <SelectContent>
@@ -151,15 +179,15 @@ function Dashboard() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-2"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Dados ao vivo</span>
-            <span>·</span><span>Período: {PERIODS[period]}</span>
+            <span>·</span><span>Período: {period === "custom" ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pt-BR") : PERIODS[period]}</span>
             {campaign !== "__all" && <><span>·</span><span className="max-w-48 truncate">Campanha: {campaign}</span></>}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => setCompareMode(v => !v)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${compareMode ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-secondary"}`}><ArrowLeftRight className="h-4 w-4" /> Comparar {compareMode ? "ativado" : ""}</button>
             <div className="flex items-center gap-1 rounded-lg border border-border p-1">
-              <button type="button" aria-label="Período anterior" onClick={() => setPeriod(p => p === "all" ? "90" : p === "90" ? "30" : p === "30" ? "7" : "1")} className="rounded p-1.5 hover:bg-secondary"><ChevronLeft className="h-4 w-4" /></button>
-              <span className="px-2 text-xs">{PERIODS[period]}</span>
-              <button type="button" aria-label="Próximo período" onClick={() => setPeriod(p => p === "1" ? "7" : p === "7" ? "30" : p === "30" ? "90" : "all")} className="rounded p-1.5 hover:bg-secondary"><ChevronRight className="h-4 w-4" /></button>
+              <button type="button" aria-label="Período anterior" onClick={() => setPeriod(p => p === "30" ? "7" : p === "7" ? "yesterday" : p === "yesterday" ? "today" : "today")} className="rounded p-1.5 hover:bg-secondary"><ChevronLeft className="h-4 w-4" /></button>
+              <span className="px-2 text-xs">{period === "custom" ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pt-BR") : PERIODS[period]}</span>
+              <button type="button" aria-label="Próximo período" onClick={() => setPeriod(p => p === "today" ? "yesterday" : p === "yesterday" ? "7" : p === "7" ? "30" : "30")} className="rounded p-1.5 hover:bg-secondary"><ChevronRight className="h-4 w-4" /></button>
             </div>
             <button type="button" onClick={() => { const rows = [["Métrica","Valor"],["Visualizações",a?.views ?? 0],["Espectadores únicos",a?.unique_viewers ?? 0],["Plays",a?.plays ?? 0],["Tempo médio assistido",a?.avg_watched ?? 0],["Chegaram à oferta",a?.reached_offer ?? 0],["Cliques no checkout",a?.clicked_checkout ?? 0]]; const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(";")).join("\\n"); const url = URL.createObjectURL(new Blob(["\\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })); const link = document.createElement("a"); link.href = url; link.download = `vexora-metricas-${video?.name ?? "vsl"}.csv`; link.click(); URL.revokeObjectURL(url); }} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Download className="h-4 w-4" /> Baixar métricas</button>
             <button type="button" onClick={() => { void navigator.clipboard.writeText(window.location.href).then(() => toast.success("Link do relatório copiado.")).catch(() => toast.error("Não foi possível copiar o link.")); }} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"><Share2 className="h-4 w-4" /> Compartilhar</button>
