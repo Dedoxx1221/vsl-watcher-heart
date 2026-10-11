@@ -273,8 +273,15 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
     const byTime = new Map<number, { t: number; n: number; r: number }>();
     byTime.set(0, { t: 0, n: a.plays, r: 100 });
     observed.forEach((point) => byTime.set(point.t, point));
-    // The final point comes from measured playback coverage, never a fabricated zero.
-    return [...byTime.values()].sort((left, right) => left.t - right.t);
+    // Retention is the share of plays that reached each timestamp. It must never
+    // rise later in the video; enforce that invariant as a guard against bad legacy data.
+    const ordered = [...byTime.values()].sort((left, right) => left.t - right.t);
+    let previousCount = a.plays;
+    return ordered.map((point) => {
+      const n = Math.min(previousCount, Math.max(0, point.n));
+      previousCount = n;
+      return { ...point, n, r: a.plays > 0 ? (n / a.plays) * 100 : 0 };
+    });
   }, [a.retention, a.plays, a.duration]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
