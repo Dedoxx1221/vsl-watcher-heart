@@ -200,15 +200,28 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
   const [cursor, setCursor] = useState(0);
   const [hoveredLiveMarker, setHoveredLiveMarker] = useState<{ id: string; position: number } | null>(null);
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
-  // Ajuste isotônico decrescente: reduz oscilações de amostras pequenas sem
-  // inventar uma queda em cada ponto. A curva exibida nunca sobe, como em players de VSL.
-  // A curva deve refletir os valores observados em cada intervalo, sem suavização
-  // isotônica que apaga oscilações reais e cria longos trechos artificiais.
-  const series = useMemo(() => (
-    a.retention
+  // Curva de retenção acumulada: começa em 100% no início da VSL e só diminui
+  // conforme a audiência abandona o vídeo. Não permita que ruídos dos buckets
+  // façam a curva subir novamente.
+  const series = useMemo(() => {
+    const observed = a.retention
       .map(([t, n]) => ({ t, n, r: Math.max(0, Math.min(100, pct(n, a.plays))) }))
-      .sort((left, right) => left.t - right.t)
-  ), [a.retention, a.plays]);
+      .filter((point) => Number.isFinite(point.t) && Number.isFinite(point.r) && point.t >= 0)
+      .sort((left, right) => left.t - right.t);
+    if (!a.plays || !a.duration) return observed;
+
+    const points = observed.filter((point) => point.t > 0 && point.t <= a.duration);
+    let previous = 100;
+    const descending = [{ t: 0, n: a.plays, r: 100 }];
+    for (const point of points) {
+      previous = Math.min(previous, point.r);
+      descending.push({ ...point, r: previous });
+    }
+    if (descending[descending.length - 1]?.t !== a.duration) {
+      descending.push({ t: a.duration, n: 0, r: Math.min(previous, 0) });
+    }
+    return descending;
+  }, [a.retention, a.plays, a.duration]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
   // Cada espectador ativo avança individualmente no eixo do tempo entre atualizações do servidor.
