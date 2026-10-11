@@ -21,6 +21,8 @@ export const Route = createFileRoute("/embed/$videoId")({
 
 function Embed() {
   const { videoId } = Route.useParams();
+  // Analytics only run when this player is actually inside another page as an iframe.
+  const trackingEnabled = typeof window !== "undefined" && window.self !== window.top;
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
@@ -122,7 +124,7 @@ function Embed() {
         className="relative w-full min-w-0 max-w-full overflow-visible"
         style={{ background: "transparent", backgroundColor: "transparent", backgroundImage: "none", boxShadow: "none" }}
       >
-        <VslPlayer video={video} />
+        <VslPlayer video={video} trackingEnabled={trackingEnabled} />
       </div>
     </>
   );
