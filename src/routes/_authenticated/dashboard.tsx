@@ -200,27 +200,20 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
   const [cursor, setCursor] = useState(0);
   const [hoveredLiveMarker, setHoveredLiveMarker] = useState<{ id: string; position: number } | null>(null);
   const seek = (t: number) => { setCursor(t); if (vref.current) vref.current.currentTime = t; };
-  // Curva de retenção acumulada: começa em 100% no início da VSL e só diminui
-  // conforme a audiência abandona o vídeo. Não permita que ruídos dos buckets
-  // façam a curva subir novamente.
+  // Mostra os valores reais de audiência de cada bucket. Não aplica mínimo
+  // acumulado: isso achatava toda a curva quando um bucket inicial vinha baixo.
   const series = useMemo(() => {
     const observed = a.retention
-      .map(([t, n]) => ({ t, n, r: Math.max(0, Math.min(100, pct(n, a.plays))) }))
-      .filter((point) => Number.isFinite(point.t) && Number.isFinite(point.r) && point.t >= 0)
+      .map(([t, n]) => ({ t, n: Math.max(0, Number(n) || 0), r: Math.max(0, Math.min(100, pct(Number(n) || 0, a.plays))) }))
+      .filter((point) => Number.isFinite(point.t) && Number.isFinite(point.r) && point.t >= 0 && point.t <= a.duration)
       .sort((left, right) => left.t - right.t);
     if (!a.plays || !a.duration) return observed;
 
-    const points = observed.filter((point) => point.t > 0 && point.t <= a.duration);
-    let previous = 100;
-    const descending = [{ t: 0, n: a.plays, r: 100 }];
-    for (const point of points) {
-      previous = Math.min(previous, point.r);
-      descending.push({ ...point, r: previous });
-    }
-    if (descending[descending.length - 1]?.t !== a.duration) {
-      descending.push({ t: a.duration, n: 0, r: Math.min(previous, 0) });
-    }
-    return descending;
+    const byTime = new Map<number, { t: number; n: number; r: number }>();
+    byTime.set(0, { t: 0, n: a.plays, r: 100 });
+    observed.forEach((point) => byTime.set(point.t, point));
+    byTime.set(a.duration, { t: a.duration, n: 0, r: 0 });
+    return [...byTime.values()].sort((left, right) => left.t - right.t);
   }, [a.retention, a.plays, a.duration]);
   const avgRetention = series.length ? series.reduce((s, p) => s + p.r, 0) / series.length : 0;
 
