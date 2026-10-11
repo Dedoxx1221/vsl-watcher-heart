@@ -18,6 +18,10 @@ export type Analytics = {
   avg_paused: number; retention: [number, number][]; marks: Record<string, number>;
   events: Record<string, number>; daily: { d: string; views: number; plays: number; clicks: number }[];
   campaigns: string[];
+  countries: { label: string; count: number }[];
+  devices: { label: string; count: number }[];
+  browsers: { label: string; count: number }[];
+  sources: { label: string; count: number }[];
 };
 
 export function fmtTime(s: number) {
