@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEditorRouteImport } from './routes/_authenticated/editor'
+import { Route as AuthenticatedLiveRouteImport } from './routes/_authenticated/live'
 import { Route as AuthenticatedVideosRouteImport } from './routes/_authenticated/videos'
 import { Route as ApiDiagnosisRouteImport } from './routes/api/diagnosis'
 import { Route as EmbedVideoIdRouteImport } from './routes/embed.$videoId'
@@ -42,6 +43,11 @@ const AuthenticatedAiRoute = AuthenticatedAiRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLiveRoute = AuthenticatedLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEditorRoute = AuthenticatedEditorRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AuthenticatedAiRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/editor': typeof AuthenticatedEditorRoute
+  '/live': typeof AuthenticatedLiveRoute
   '/videos': typeof AuthenticatedVideosRoute
   '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
@@ -100,6 +107,7 @@ export interface FileRoutesById {
   '/_authenticated/ai': typeof AuthenticatedAiRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/editor': typeof AuthenticatedEditorRoute
+  '/_authenticated/live': typeof AuthenticatedLiveRoute
   '/_authenticated/videos': typeof AuthenticatedVideosRoute
   '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
@@ -113,6 +121,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/dashboard'
     | '/editor'
+    | '/live'
     | '/videos'
     | '/api/diagnosis'
     | '/embed/$videoId'
@@ -188,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/live': {
+      id: '/_authenticated/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof AuthenticatedLiveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/editor': {
       id: '/_authenticated/editor'
       path: '/editor'
@@ -230,6 +246,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiRoute: typeof AuthenticatedAiRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEditorRoute: typeof AuthenticatedEditorRoute
+  AuthenticatedLiveRoute: typeof AuthenticatedLiveRoute
   AuthenticatedVideosRoute: typeof AuthenticatedVideosRoute
 }
 
