@@ -195,7 +195,7 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
   );
 }
 
-function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; video: { id: string; video_url: string; thumbnail_url: string | null; checkout_url: string | null; offer_time_seconds: number | null; player_settings?: unknown } | null; live?: { viewers?: { is_playing: boolean; position: number }[] } | undefined }) {
+function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; video: { id: string; video_url: string; thumbnail_url: string | null; checkout_url: string | null; offer_time_seconds: number | null; player_settings?: unknown } | null; live?: { viewers?: { is_playing: boolean; position: number; session_id: string; last_seen_at: string }[] } | undefined }) {
   const vref = useRef<HTMLVideoElement>(null);
   const [cursor, setCursor] = useState(0);
   const [hoveredLiveMarker, setHoveredLiveMarker] = useState<{ id: string; position: number } | null>(null);
@@ -306,7 +306,7 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
         <div className="min-w-0 rounded-xl border border-border/70 bg-background/50 p-2 pt-4 md:p-4 md:pt-5">
           <ResponsiveContainer>
             <AreaChart
-              data={chartSeries}
+              data={series}
               margin={{ left: -10, right: 10 }}
               className="cursor-crosshair"
               onClick={(st) => { const t = Number((st as { activeLabel?: number | string })?.activeLabel); if (!isNaN(t)) seek(t); }}
