@@ -46,7 +46,8 @@ function Dashboard() {
 
     setResettingMetrics(true);
     try {
-      // Exclui primeiro os dados dependentes e depois as sessões, sempre limitando à VSL selecionada.
+      // Remove os dados brutos que alimentam todas as métricas: intervalos assistidos,
+      // eventos (incluindo pitch/checkout) e sessões/visualizações. O vídeo e sua configuração permanecem.
       const rangesResult = await supabase.from("watch_ranges").delete().eq("video_id", videoId);
       if (rangesResult.error) throw rangesResult.error;
       const eventsResult = await supabase.from("events").delete().eq("video_id", videoId);
@@ -54,11 +55,16 @@ function Dashboard() {
       const sessionsResult = await supabase.from("sessions").delete().eq("video_id", videoId);
       if (sessionsResult.error) throw sessionsResult.error;
 
+      // Invalida todas as consultas de analytics, incluindo chaves com filtros/parâmetros.
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["analytics", videoId] }),
-        queryClient.invalidateQueries({ queryKey: ["live-vsl-analytics", videoId] }),
+        queryClient.invalidateQueries({ queryKey: ["analytics"] }),
+        queryClient.invalidateQueries({ queryKey: ["live-vsl-analytics"] }),
       ]);
-      toast.success("Métricas da VSL resetadas com sucesso.");
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["analytics", videoId], type: "active" }),
+        queryClient.refetchQueries({ queryKey: ["live-vsl-analytics", videoId], type: "active" }),
+      ]);
+      toast.success("Todas as métricas e visualizações desta VSL foram apagadas. A contagem recomeçará do zero.");
     } catch (error) {
       console.error("Erro ao resetar métricas:", error);
       toast.error("Não foi possível resetar as métricas. Verifique as permissões do banco de dados.");
