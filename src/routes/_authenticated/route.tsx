@@ -34,7 +34,7 @@ function Layout() {
           <Link preload="intent" to="/videos" className={item} activeProps={active}><Film className="h-[18px] w-[18px] shrink-0" />Biblioteca</Link>
           <Link preload="intent" to="/dashboard" className={item} activeProps={active}><BarChart3 className="h-[18px] w-[18px] shrink-0" />Analytics</Link>
           <Link preload="intent" to="/editor" className={item} activeProps={active}><SlidersHorizontal className="h-[18px] w-[18px] shrink-0" />Editor do player</Link>
-          <Link preload="intent" to="/dashboard" search={{ live: true }} className={item} activeProps={active}><Radio className="h-[18px] w-[18px] shrink-0" />Audiência ao vivo</Link>
+          <Link preload="intent" to="/live" className={item} activeProps={active}><Radio className="h-[18px] w-[18px] shrink-0" />Audiência ao vivo</Link>
         </nav>
 
         <div className="mt-5 hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent p-4 md:block">
