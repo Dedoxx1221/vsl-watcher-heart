@@ -18,16 +18,14 @@ BEGIN
     RAISE EXCEPTION 'not found';
   END IF;
 
-  SELECT COALESCE(v.duration_seconds, max(w.end_s), 0)
-    INTO dur
-  FROM public.watch_ranges w
-  WHERE w.video_id = _video_id;
+  SELECT COALESCE(v.duration_seconds, (SELECT max(w.end_s) FROM public.watch_ranges w WHERE w.video_id = _video_id), 0)
+    INTO dur;
 
   dur := GREATEST(COALESCE(dur, 0), 0);
   -- Keep the curve readable with at most roughly 300 regular points.
   bsize := GREATEST(1, ceil(GREATEST(dur, 1) / 300.0)::int);
 
-  WITH sessions_filtered AS MATERIALIZED (
+  WITH RECURSIVE sessions_filtered AS MATERIALIZED (
     SELECT s.*
     FROM public.sessions s
     WHERE s.video_id = _video_id
