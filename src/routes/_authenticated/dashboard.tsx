@@ -266,8 +266,12 @@ function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; v
     if (!a.plays || !a.duration) return observed;
 
     const byTime = new Map<number, { t: number; n: number; r: number }>();
+    observed.forEach((point) => {
+      // A SQL sample at t=0 can be lower than total plays when older
+      // sessions have incomplete watch_ranges. Preserve the known denominator.
+      if (point.t > 0) byTime.set(point.t, point);
+    });
     byTime.set(0, { t: 0, n: a.plays, r: 100 });
-    observed.forEach((point) => byTime.set(point.t, point));
     // Retention is the share of plays that reached each timestamp. It must never
     // rise later in the video; enforce that invariant as a guard against bad legacy data.
     const ordered = [...byTime.values()].sort((left, right) => left.t - right.t);
