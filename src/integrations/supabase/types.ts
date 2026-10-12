@@ -64,6 +64,7 @@ export type Database = {
       }
       sessions: {
         Row: {
+          browser: string | null
           campaign: string | null
           city: string | null
           clicked_checkout: boolean
@@ -91,6 +92,7 @@ export type Database = {
           watched_seconds: number
         }
         Insert: {
+          browser?: string | null
           campaign?: string | null
           city?: string | null
           clicked_checkout?: boolean
@@ -118,6 +120,7 @@ export type Database = {
           watched_seconds?: number
         }
         Update: {
+          browser?: string | null
           campaign?: string | null
           city?: string | null
           clicked_checkout?: boolean
