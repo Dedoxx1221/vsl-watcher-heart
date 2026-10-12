@@ -138,6 +138,10 @@ export function VslPlayer({ video, settings, preview = false, trackingEnabled = 
       v.muted = false;
       started.current = true;
       await v.play();
+      // The native play event fires while `resetting` is set and is ignored by T();
+      // report the start explicitly so watch ranges begin at the real start position.
+      resetting.current = false;
+      if (!preview) tracker.current?.onPlay(v.currentTime);
       setOverlay(false);
       if (!preview) fire(cfg, "ViewContent", "vsl_play");
     } catch (err) {
