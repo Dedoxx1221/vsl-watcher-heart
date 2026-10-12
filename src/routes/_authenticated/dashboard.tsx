@@ -35,7 +35,7 @@ function localDateInputValue(date: Date) {
 
 function localDayStart(dateString: string) {
   const [year, month, day] = dateString.split("-").map(Number);
-  return new Date(year, month - 1, day, 0, 0, 0, 0);
+  return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1, 0, 0, 0, 0);
 }
 
 function Dashboard() {
@@ -251,7 +251,7 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
   );
 }
 
-function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; video: { id: string; video_url: string; thumbnail_url: string | null; checkout_url: string | null; offer_time_seconds: number | null; player_settings?: unknown } | null; live?: { viewers?: { is_playing: boolean; position: number; session_id: string; last_seen_at: string }[] } | undefined }) {
+function Body({ a, offer, video, live }: { a: Analytics; offer: number | null; video: { id: string; video_url: string; thumbnail_url: string | null; checkout_url: string | null; offer_time_seconds: number | null; player_settings?: unknown } | null; live?: { active_count?: number; viewers?: { is_playing: boolean; position: number; session_id: string; last_seen_at: string }[] } | undefined }) {
   const vref = useRef<HTMLVideoElement>(null);
   const [cursor, setCursor] = useState(0);
   const [hoveredLiveMarker, setHoveredLiveMarker] = useState<{ id: string; position: number } | null>(null);
