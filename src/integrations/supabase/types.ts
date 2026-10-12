@@ -250,6 +250,7 @@ export type Database = {
         }
         Returns: Json
       }
+      reset_video_metrics: { Args: { _video_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
