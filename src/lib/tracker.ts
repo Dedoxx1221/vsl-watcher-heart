@@ -64,6 +64,7 @@ export class VslTracker {
   setDuration(d: number) { if (isFinite(d) && d > 0) this.duration = r2(d); }
 
   onPlay(t: number) {
+    if (this.playing) return; // already reported (explicit start + native play event)
     if (this.pausedAt != null) {
       this.s.paused += (Date.now() - this.pausedAt) / 1000;
       this.pausedAt = null;
