@@ -43,6 +43,13 @@
       "when": 1791780704511,
       "tag": "0005_sessions_browser",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791780726908,
+      "tag": "0006_remove_test_session",
+      "breakpoints": true
     }
   ]
 }
