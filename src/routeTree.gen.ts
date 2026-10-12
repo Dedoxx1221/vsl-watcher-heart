@@ -45,14 +45,14 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedLiveRoute = AuthenticatedLiveRouteImport.update({
-  id: '/live',
-  path: '/live',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedEditorRoute = AuthenticatedEditorRouteImport.update({
   id: '/editor',
   path: '/editor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLiveRoute = AuthenticatedLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedVideosRoute = AuthenticatedVideosRouteImport.update({
@@ -94,6 +94,7 @@ export interface FileRoutesByTo {
   '/ai': typeof AuthenticatedAiRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/editor': typeof AuthenticatedEditorRoute
+  '/live': typeof AuthenticatedLiveRoute
   '/videos': typeof AuthenticatedVideosRoute
   '/api/diagnosis': typeof ApiDiagnosisRoute
   '/embed/$videoId': typeof EmbedVideoIdRoute
@@ -133,6 +134,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/dashboard'
     | '/editor'
+    | '/live'
     | '/videos'
     | '/api/diagnosis'
     | '/embed/$videoId'
@@ -145,6 +147,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ai'
     | '/_authenticated/dashboard'
     | '/_authenticated/editor'
+    | '/_authenticated/live'
     | '/_authenticated/videos'
     | '/api/diagnosis'
     | '/embed/$videoId'
@@ -197,18 +200,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/live': {
-      id: '/_authenticated/live'
-      path: '/live'
-      fullPath: '/live'
-      preLoaderRoute: typeof AuthenticatedLiveRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/editor': {
       id: '/_authenticated/editor'
       path: '/editor'
       fullPath: '/editor'
       preLoaderRoute: typeof AuthenticatedEditorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/live': {
+      id: '/_authenticated/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof AuthenticatedLiveRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/videos': {
@@ -254,6 +257,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiRoute: AuthenticatedAiRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEditorRoute: AuthenticatedEditorRoute,
+  AuthenticatedLiveRoute: AuthenticatedLiveRoute,
   AuthenticatedVideosRoute: AuthenticatedVideosRoute,
 }
 
